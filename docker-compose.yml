@@ -1,0 +1,42 @@
+# Docker Compose configuration for the MySQL database
+services:
+
+  # Defines the MySQL database service
+  mysql:
+
+    # Official MySQL image and version
+    image: mysql:8.4
+
+    # Name assigned to the running container
+    container_name: on-demand-mysql
+
+    # Initial MySQL configuration
+    environment:
+
+      # Administrator password for MySQL
+      # Development password only; do not use this in production
+      MYSQL_ROOT_PASSWORD: root
+
+      # Database created automatically when the container starts for the first time
+      MYSQL_DATABASE: on_demand_delivery_db
+
+      # Regular application user
+      # Spring Boot should use this user instead of root
+      MYSQL_USER: delivery_user
+
+      # Password for the regular application user
+      MYSQL_PASSWORD: delivery_password
+
+    # Connects the computer's port 3306 to the container's port 3306
+    ports:
+      - "3306:3306"
+
+    # Stores database data permanently
+    # Data remains even if the container is stopped or recreated
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+
+# Declares the named Docker volume used above
+volumes:
+  mysql_data:
