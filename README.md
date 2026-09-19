@@ -129,3 +129,14 @@ docker compose down
 The MySQL data is preserved in the Docker volume unless the volume is manually deleted.
 
 > The usernames and passwords in this document are for local development only. Do not use these credentials in production.
+
+
+## Customers Endpoint
+
+Retrieves all customers from the `customers` table.
+
+### Request
+
+```http
+GET http://localhost:8080/api/customers
+
