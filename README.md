@@ -80,6 +80,7 @@ exit;
 Give the Maven wrapper permission to run. This command only needs to be executed once:
 
 ```bash
+cd backend
 chmod u+x mvnw
 ```
 
@@ -95,6 +96,15 @@ The backend will run at:
 http://localhost:8080
 ```
 
+### 5. Start the React Frontend
+
+```bash
+cd ..
+cd frontend
+npm install
+npm run dev
+```
+
 ## Recommended Startup Order
 
 ```text
@@ -102,6 +112,7 @@ http://localhost:8080
 2. Start MySQL with Docker Compose
 3. Check the MySQL container
 4. Start the Spring Boot application
+5. Start the React Frontend
 ```
 
 Commands:
@@ -109,7 +120,12 @@ Commands:
 ```bash
 docker compose up -d
 docker compose ps
+cd backend
 ./mvnw spring-boot:run
+cd ..
+cd frontend
+npm install
+npm run dev
 ```
 
 ## Stopping the Project
