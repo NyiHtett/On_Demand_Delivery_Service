@@ -26,7 +26,7 @@ CURRENT_TIMESTAMP,
     total_amount DECIMAL(15,2) NOT NULL DEFAULT 0.00 CHECK (total_amount >= 0),
     weight DECIMAL(15,3) NOT NULL DEFAULT 0.000 CHECK (weight >= 0),
     customer_id INT NOT NULL,
-    FOREIGN KEY (customer_id) REFERENCES User(user_id)
+    FOREIGN KEY (customer_id) REFERENCES Users(user_id)
 );
 
 CREATE TABLE Product (
@@ -91,7 +91,7 @@ CREATE TABLE Saves (
     card_number VARCHAR(30) NOT NULL,
     customer_id INT NOT NULL,
     PRIMARY KEY (customer_id, card_number),
-    FOREIGN KEY (customer_id) REFERENCES User(user_id),
+    FOREIGN KEY (customer_id) REFERENCES Users(user_id),
     FOREIGN KEY (card_number) REFERENCES PaymentMethod(card_number)
 );
 
@@ -103,5 +103,5 @@ CREATE TABLE Updates (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE        
         CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id) REFERENCES Product(product_id),
-    FOREIGN KEY (employee_id) REFERENCES User(user_id)
+    FOREIGN KEY (employee_id) REFERENCES Users(user_id)
 );
