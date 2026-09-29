@@ -1,9 +1,9 @@
 CREATE TABLE users (
     user_id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(150) NOT NULL,
+    user_name VARCHAR(150) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     phone VARCHAR(20) DEFAULT NULL,
-    address VARCHAR(300) DEFAULT NULL,
+    user_address VARCHAR(300) DEFAULT NULL,
     password_hash VARCHAR(255) NOT NULL,
     user_type VARCHAR(20) NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -58,8 +58,8 @@ CREATE TABLE user_payment_methods (
 
 CREATE TABLE products (
     product_id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(200) NOT NULL UNIQUE,
-    description VARCHAR(1000) DEFAULT NULL,
+    product_name VARCHAR(200) NOT NULL UNIQUE,
+    product_description VARCHAR(1000) DEFAULT NULL,
     unit_weight DECIMAL(15,3) NOT NULL,
     unit_price DECIMAL(15,2) NOT NULL,
     image_url VARCHAR(5000) DEFAULT NULL,
@@ -77,7 +77,7 @@ CREATE TABLE products (
 CREATE TABLE shopping_carts (
     cart_id INT PRIMARY KEY AUTO_INCREMENT,
     customer_id INT DEFAULT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'Active',
+    table_status VARCHAR(20) NOT NULL DEFAULT 'Active',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
@@ -141,7 +141,7 @@ CREATE TABLE orders (
     -- Nullable so an order survives payment-method deletion.
     card_number VARCHAR(30) DEFAULT NULL,
 
-    status VARCHAR(20) NOT NULL DEFAULT 'Ordered',
+    order_status VARCHAR(20) NOT NULL DEFAULT 'Ordered',
 
     -- Checkout-time snapshots.
     delivery_address VARCHAR(500) NOT NULL,
@@ -216,7 +216,7 @@ CREATE TABLE order_items (
 
 CREATE TABLE delivery_tasks (
     task_id INT PRIMARY KEY AUTO_INCREMENT,
-    status VARCHAR(20) NOT NULL DEFAULT 'Not Started',
+    delivery_task_status VARCHAR(20) NOT NULL DEFAULT 'Not Started',
 
     -- Store address preserved for this particular delivery run.
     pickup_address VARCHAR(500) NOT NULL,
@@ -273,11 +273,11 @@ CREATE TABLE inventory_updates (
     employee_id INT DEFAULT NULL,
     employee_name VARCHAR(150) NOT NULL,
 
-    action VARCHAR(20) NOT NULL,
+    inventory_updates_action VARCHAR(20) NOT NULL,
     field_name VARCHAR(100) DEFAULT NULL,
     old_value TEXT DEFAULT NULL,
     new_value TEXT DEFAULT NULL,
-    description VARCHAR(1000) DEFAULT NULL,
+    inventory_updates_description VARCHAR(1000) DEFAULT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (product_id)
