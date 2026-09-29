@@ -47,10 +47,22 @@ function AuthForm({pageTitle}) {
               </label>
               <input
                 id="password"
-                type="text"
+                type="password"
                 placeholder="Enter your password..."
                 className="min-h-12 w-full rounded-xl border-2 border-brand-green-100 bg-white py-3 pl-12 pr-12 text-ink outline-none transition-colors placeholder:text-ink/40 focus:border-brand-green-500"
               />
+              {pageTitle === "Sign Up" && (
+                <div className="mt-4">
+                  <label htmlFor="confirmPassword" className="sr-only">Confirm Your Password</label>
+                  <input 
+                    id="confirmPassword" 
+                    type="password" 
+                    placeholder="Confirm your password..." 
+                    className="min-h-12 w-full rounded-xl border-2 border-brand-green-100 bg-white py-3 pl-12 pr-12 text-ink outline-none transition-colors placeholder:text-ink/40 focus:border-brand-green-500" 
+                  />
+                </div>
+              )}
+
               <button onClick={() => console.log('Clicked!')}
                       className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl bg-brand-green-600 px-5 font-display font-bold text-white no-underline transition-colors hover:bg-brand-green-700 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-orange-400"
               >
