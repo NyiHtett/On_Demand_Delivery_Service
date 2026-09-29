@@ -22,11 +22,30 @@ function AuthForm({pageTitle}) {
                 </p>
               </div>
 
+              {pageTitle === "Sign Up" && (
+                <div className="mt-4">
+                  <div className="mb-5 flex items-end justify-between gap-4">
+                    <h2 className="font-display text-xl font-black text-ink sm:text-2xl">
+                      Name
+                    </h2>
+                  </div>
+                  <label htmlFor="Email" className="sr-only">
+                    Enter Your Name
+                  </label>
+                  <input
+                    id="username"
+                    type="text"
+                    placeholder="Enter your name..."
+                    className="min-h-12 w-full rounded-xl border-2 border-brand-green-100 bg-white py-3 pl-12 pr-12 text-ink outline-none transition-colors placeholder:text-ink/40 focus:border-brand-green-500"
+                  />
+                </div>
+              )}
               <div className="mb-5 flex items-end justify-between gap-4">
                 <h2 className="font-display text-xl font-black text-ink sm:text-2xl">
                   Email
                 </h2>
               </div>
+
 
               <label htmlFor="Email" className="sr-only">
                 Enter Your Email
