@@ -1,5 +1,11 @@
+import AuthForm from "../components/auth/AuthForm";
+
 function SignUpPage() {
-  return <section>{/* Customer sign-up page template */}</section>;
+  const pageTitle = "Sign Up";
+  return (
+  <section>
+    <AuthForm pageTitle={pageTitle}/>
+  </section>);
 }
 
 export default SignUpPage;
