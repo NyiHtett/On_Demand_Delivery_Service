@@ -1,12 +1,15 @@
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Header from '../layout/Header';
 import { useState } from 'react';
+import { signUpUser } from '../../services/userService';
 
 function AuthForm({pageTitle}) {
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   function validatePassword(password) {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,24}$/;
     return regex.test(password);
@@ -23,9 +26,25 @@ function AuthForm({pageTitle}) {
      email !== '' &&
      validatePassword(password) &&
      password === confirmPassword);
+  
+  async function handleSubmit(event) {
+    event.preventDefault();
+
+    setErrorMessage('');
+    try {
+      await signUpUser({
+        name,
+        email,
+        password
+      });
+      navigate('/shop');
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Signup failed.');
+    }
+  }
 
   return (
-    <form>
+    <form onSubmit={handleSubmit}>
       <div className="min-h-screen bg-paper px-5 pb-8 sm:px-8 lg:px-12">
         <div className="mx-auto max-w-7xl">
           <Header />
@@ -111,8 +130,13 @@ function AuthForm({pageTitle}) {
                   />
                 </div>
               )}
+              {errorMessage && (
+                <p className="mt-4 text-sm font-semibold text-red-700" role="alert">
+                  {errorMessage}
+                </p>
+              )}
               <button disabled={!isSubmitButtonEnabled}
-                      onClick={() => console.log('Clicked!')}
+                      type="submit"
                       className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl bg-brand-green-600 px-5 font-display font-bold text-white no-underline transition-colors hover:bg-brand-green-700 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-orange-400"
               >
                 {pageTitle}
