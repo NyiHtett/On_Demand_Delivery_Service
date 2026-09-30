@@ -14,11 +14,15 @@ function AuthForm({pageTitle}) {
 
   // Condition evaluates directly on every render
   const isSubmitButtonEnabled = 
-    pageTitle === "Login" ||
-    (name !== '' &&
+    (pageTitle === "Login" &&
      email !== '' &&
-    validatePassword(password) &&
-    password === confirmPassword);
+     password !== '')
+      ||
+    (pageTitle === "Sign Up" &&
+     name !== '' &&
+     email !== '' &&
+     validatePassword(password) &&
+     password === confirmPassword);
 
   return (
     <form>
