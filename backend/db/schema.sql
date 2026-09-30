@@ -87,7 +87,7 @@ CREATE TABLE shopping_carts (
         ON DELETE SET NULL,
 
     CHECK (
-        status IN (
+        table_status IN (
             'Active',
             'Ordered',
             'Cancelled',
@@ -166,7 +166,7 @@ CREATE TABLE orders (
         ON DELETE SET NULL,
 
     CHECK (
-        status IN (
+        order_status IN (
             'Active',
             'Ordered',
             'Cancelled',
@@ -226,7 +226,7 @@ CREATE TABLE delivery_tasks (
     end_time DATETIME DEFAULT NULL,
 
     CHECK (
-        status IN (
+        delivery_task_status IN (
             'Not Started',
             'En Route',
             'Completed',
@@ -289,7 +289,7 @@ CREATE TABLE inventory_updates (
         ON DELETE SET NULL,
 
     CHECK (
-        action IN (
+        inventory_updates_action IN (
             'Created',
             'Updated',
             'Deleted'
