@@ -1,16 +1,19 @@
 package com.example.demo.service;
 
-import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import java.util.List;
 import com.example.demo.dao.UserDao;
 import com.example.demo.dto.SignUpRequest;
 import com.example.demo.dto.UserResponse;
+import com.example.demo.dto.LoginRequest;
 import com.example.demo.model.User;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 public class UserService {
     private final UserDao userDao;
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public UserService(UserDao userDao) {
         this.userDao = userDao;
@@ -18,6 +21,17 @@ public class UserService {
 
     public List<User> getAllUsers() {
         return userDao.getAllUsers();
+    }
+
+    // Service
+    public UserResponse loginUser(LoginRequest request) {
+        String storedHash = userDao.getPasswordHashByEmail(request.email());
+
+        if (storedHash == null || !passwordEncoder.matches(request.password(), storedHash)) {
+            throw new RuntimeException("Invalid email or password");
+        }
+
+        return userDao.getUserByEmail(request.email());
     }
 
     public UserResponse signUpUser(SignUpRequest request) {
@@ -40,11 +54,6 @@ public class UserService {
     }
 
     public String hashPassword(String password) {
-        // Create an encoder with all the defaults
-        Argon2PasswordEncoder encoder = Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
-        String result = encoder.encode(password);
-        if (encoder.matches(password, result))        
-            return result;
-        return null;
+        return passwordEncoder.encode(password);
     }
 }

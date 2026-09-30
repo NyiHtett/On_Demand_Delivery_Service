@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import Header from '../layout/Header';
 import { useState } from 'react';
-import { signUpUser } from '../../services/userService';
+import { loginUser, signUpUser } from '../../services/userService';
 
 function AuthForm({pageTitle}) {
   const navigate = useNavigate();
@@ -32,12 +32,12 @@ function AuthForm({pageTitle}) {
 
     setErrorMessage('');
     try {
-      await signUpUser({
-        name,
-        email,
-        password
-      });
-      navigate('/shop');
+    const request = pageTitle === 'Login'
+      ? loginUser({ email, password })
+      : signUpUser({ name, email, password });
+
+    await request;
+    navigate('/shop');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Signup failed.');
     }

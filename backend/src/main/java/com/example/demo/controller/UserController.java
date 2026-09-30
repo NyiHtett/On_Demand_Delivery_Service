@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import java.util.List;
 
+import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.SignUpRequest;
 import com.example.demo.dto.UserResponse;
 import com.example.demo.model.User;
@@ -35,4 +36,9 @@ public class UserController {
     public UserResponse signUpUser(@RequestBody SignUpRequest request) {
         return userService.signUpUser(request);
     }
+
+    @PostMapping ("/login")
+    public UserResponse loginUser(@RequestBody LoginRequest request) {
+        return userService.loginUser(request);
+}
 }

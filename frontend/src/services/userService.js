@@ -16,4 +16,21 @@ async function signUpUser(signUpData) {
   return response.json();
 }
 
-export {signUpUser};
+async function loginUser(loginData) {
+  const response = await fetch("/api/users/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(loginData)
+  });
+
+  if (!response.ok) {
+    const details = await response.text();
+    throw new Error(details || `Login failed (HTTP ${response.status}).`);
+  }
+
+  return response.json();
+}
+
+export { loginUser, signUpUser };

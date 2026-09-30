@@ -11,9 +11,13 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/users/signup"))
+            .csrf(csrf -> csrf.ignoringRequestMatchers(
+    "/api/users/signup",
+                "/api/users/login"
+        ))
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/users/login").permitAll()
                 .anyRequest().authenticated()
             )
             .build();

@@ -27,7 +27,7 @@ public class UserDao {
         // sql statement 
         // DESCRIBE the table to know the columns
         String sql = """
-            SELECT user_id, user_name, email, phone, user_address, password_hash, created_at, updated_at
+            SELECT user_id, name, email, phone, address, password_hash, user_type, created_at, updated_at
             FROM users
             ORDER BY User_id
         """;
@@ -36,10 +36,10 @@ public class UserDao {
         return jdbcTemplate.query(sql, (resultSet, rowNumber) ->
             new User(
                 resultSet.getLong("user_id"), 
-                resultSet.getString("user_name"), 
+                resultSet.getString("name"), 
                 resultSet.getString("email"), 
                 resultSet.getString("phone"), 
-                resultSet.getString("user_address"), 
+                resultSet.getString("address"), 
                 resultSet.getString("password_hash"), 
                 resultSet.getString("user_type"), 
                 resultSet.getTimestamp("created_at").toLocalDateTime(),
@@ -47,8 +47,10 @@ public class UserDao {
             )
         );
     }
+
+    
     public UserResponse signUpUser(String name, String email, String passwordHash) {
-        String sql = "INSERT INTO users (user_name, email, password_hash, user_type) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO users (name, email, password_hash, user_type) VALUES (?, ?, ?, ?)";
         
         // KeyHolder is used to capture the auto-generated User ID
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -74,7 +76,7 @@ public class UserDao {
 
     public UserResponse getUserByEmail(String email) {
         String sql = """
-            SELECT user_id, user_name, email
+            SELECT user_id, name, email
             FROM users
             WHERE email = ?;
         """;
@@ -83,7 +85,7 @@ public class UserDao {
         List <UserResponse> users = jdbcTemplate.query(sql, (resultSet, rowNumber) -> {
             return new UserResponse(
                 resultSet.getLong("user_id"), 
-                resultSet.getString("user_name"), 
+                resultSet.getString("name"), 
                 resultSet.getString("email")
             );
         }, email);
@@ -92,5 +94,16 @@ public class UserDao {
             return null;
         else
             return users.get(0);
+    }
+
+    public String getPasswordHashByEmail(String email) {
+        String sql = "SELECT password_hash FROM users WHERE email = ?";
+        List<String> passwordHashes = jdbcTemplate.query(
+            sql,
+            (resultSet, rowNumber) -> resultSet.getString("password_hash"),
+            email
+        );
+
+        return passwordHashes.isEmpty() ? null : passwordHashes.get(0);
     }
 }

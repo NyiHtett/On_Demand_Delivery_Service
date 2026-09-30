@@ -11,7 +11,7 @@ import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import com.example.demo.dao.UserDao;
 import com.example.demo.dto.SignUpRequest;
@@ -39,7 +39,7 @@ public class UserServiceTest {
     verify(userDao).signUpUser(eq(name), eq(email), hashCaptor.capture());
 
     assertTrue(
-        Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8()
+        new BCryptPasswordEncoder()
             .matches(password, hashCaptor.getValue())
     );
     assertTrue(response.id() == 1L);

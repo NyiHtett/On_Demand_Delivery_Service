@@ -6,5 +6,5 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest 
 public class UserControllerTest {
-  MockMvc mock = new MockMvc();
+  //MockMvc mock = new MockMvc();
 }
