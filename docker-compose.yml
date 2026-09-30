@@ -35,6 +35,7 @@ services:
     # Data remains even if the container is stopped or recreated
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./backend/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
 
 
 # Declares the named Docker volume used above
