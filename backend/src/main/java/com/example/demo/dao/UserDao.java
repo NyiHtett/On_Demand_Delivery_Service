@@ -1,7 +1,6 @@
 package com.example.demo.dao;
 
 import com.example.demo.dto.UserResponse;
-import com.example.demo.model.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -10,6 +9,8 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Responsible for interacting with the database to perform CRUD operations on User entities.
@@ -23,27 +24,22 @@ public class UserDao {
     }
 
     // return a list of Users
-    public List<User> getAllUsers() {
+    public List<UserResponse> getAllUsers() {
         // sql statement 
         // DESCRIBE the table to know the columns
         String sql = """
-            SELECT user_id, name, email, phone, address, password_hash, user_type, created_at, updated_at
+            SELECT user_id, name, email, user_type
             FROM users
-            ORDER BY User_id
+            ORDER BY user_id
         """;
     
         // result and rowNumber are parameters given by the template
         return jdbcTemplate.query(sql, (resultSet, rowNumber) ->
-            new User(
+            new UserResponse(
                 resultSet.getLong("user_id"), 
                 resultSet.getString("name"), 
                 resultSet.getString("email"), 
-                resultSet.getString("phone"), 
-                resultSet.getString("address"), 
-                resultSet.getString("password_hash"), 
-                resultSet.getString("user_type"), 
-                resultSet.getTimestamp("created_at").toLocalDateTime(),
-                resultSet.getTimestamp("updated_at").toLocalDateTime()
+                resultSet.getString("user_type")
             )
         );
     }
@@ -68,7 +64,7 @@ public class UserDao {
         Number key = keyHolder.getKey();
         if (key != null) {
             long userId = key.longValue();
-            return new UserResponse(userId, name, email);
+            return new UserResponse(userId, name, email, "Customer");
         }
 
         return null;
@@ -76,7 +72,7 @@ public class UserDao {
 
     public UserResponse getUserByEmail(String email) {
         String sql = """
-            SELECT user_id, name, email
+            SELECT user_id, name, email, user_type
             FROM users
             WHERE email = ?;
         """;
@@ -86,7 +82,8 @@ public class UserDao {
             return new UserResponse(
                 resultSet.getLong("user_id"), 
                 resultSet.getString("name"), 
-                resultSet.getString("email")
+                resultSet.getString("email"),
+                resultSet.getString("user_type")
             );
         }, email);
 
@@ -105,5 +102,39 @@ public class UserDao {
         );
 
         return passwordHashes.isEmpty() ? null : passwordHashes.get(0);
+    }
+
+    public String createSession(long userId) {
+        String apiToken = UUID.randomUUID().toString();
+        jdbcTemplate.update(
+            "INSERT INTO sessions (session_id, user_id) VALUES (?, ?)",
+            apiToken,
+            userId
+        );
+        return apiToken;
+    }
+
+    public Optional<UserResponse> getUserBySessionId(String sessionId) {
+        String sql = """
+            SELECT u.user_id, u.name, u.email, u.user_type
+            FROM sessions s
+            JOIN users u ON u.user_id = s.user_id
+            WHERE s.session_id = ?
+        """;
+
+        List<UserResponse> users = jdbcTemplate.query(sql, (resultSet, rowNumber) ->
+            new UserResponse(
+                resultSet.getLong("user_id"),
+                resultSet.getString("name"),
+                resultSet.getString("email"),
+                resultSet.getString("user_type")
+            ),
+            sessionId
+        );
+        return users.stream().findFirst();
+    }
+
+    public void deleteSession(String sessionId) {
+        jdbcTemplate.update("DELETE FROM sessions WHERE session_id = ?", sessionId);
     }
 }

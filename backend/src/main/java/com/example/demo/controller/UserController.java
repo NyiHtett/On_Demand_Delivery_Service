@@ -2,11 +2,15 @@ package com.example.demo.controller;
 
 import java.util.List;
 
+import com.example.demo.dto.AuthResponse;
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.SignUpRequest;
 import com.example.demo.dto.UserResponse;
-import com.example.demo.model.User;
+import com.example.demo.exception.ApiException;
 import com.example.demo.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,16 +33,27 @@ public class UserController {
      * Get mapping handles GET requests
      */
     @GetMapping
-    public List<User> getAllUsers() {
+    public List<UserResponse> getAllUsers() {
         return userService.getAllUsers();
     }
     @PostMapping("/signup")
-    public UserResponse signUpUser(@RequestBody SignUpRequest request) {
+    public AuthResponse signUpUser(@RequestBody SignUpRequest request) {
         return userService.signUpUser(request);
     }
 
     @PostMapping ("/login")
-    public UserResponse loginUser(@RequestBody LoginRequest request) {
+    public AuthResponse loginUser(@RequestBody LoginRequest request) {
         return userService.loginUser(request);
-}
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logoutUser(HttpServletRequest request) {
+        String authorization = request.getHeader("Authorization");
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "Authentication required.");
+        }
+
+        userService.logoutUser(authorization.substring(7));
+        return ResponseEntity.noContent().build();
+    }
 }

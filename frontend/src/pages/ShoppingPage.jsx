@@ -1,29 +1,78 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Header from '../components/layout/Header';
 import ProductGrid from '../components/catalog/ProductGrid';
 import ProductSearch from '../components/catalog/ProductSearch';
+import { getInventory } from '../services/customerService';
 
-const products = [
-  { id: 1, name: 'apples', price: '$2.49', unit: '1 lb', stock: 50, icon: '🍎' },
-  { id: 2, name: 'carrots', price: '$1.89', unit: '1 lb', stock: 32, icon: '🥕' },
-  { id: 3, name: 'bread', price: '$3.25', unit: '1 loaf (16 oz)', stock: 20, icon: '🍞' },
-  { id: 4, name: 'avocados', price: '$1.50', unit: '1 each', stock: 28, icon: '🥑' },
-  { id: 5, name: 'bananas', price: '$1.29', unit: '1 lb', stock: 45, icon: '🍌' },
-  { id: 6, name: 'tomatoes', price: '$2.15', unit: '1 lb', stock: 36, icon: '🍅' },
-  { id: 7, name: 'milk', price: '$4.10', unit: '1 gal', stock: 18, icon: '🥛' },
-  { id: 8, name: 'lettuce', price: '$2.75', unit: '1 head', stock: 26, icon: '🥬' },
-];
+const productIcons = {
+  apple: '🍎',
+  avocado: '🥑',
+  banana: '🍌',
+  carrot: '🥕',
+  lettuce: '🥬',
+  milk: '🥛',
+  toast: '🍞',
+  tomato: '🍅',
+};
+
+function toDisplayProduct(product) {
+  const name = product.name || 'product';
+  const normalizedName = name.toLowerCase();
+  const iconKey = Object.keys(productIcons).find((key) => normalizedName.includes(key));
+  const price = Number(product.unitPrice ?? product.unit_price ?? product.price ?? 0);
+  const weight = product.unitWeight ?? product.unit_weight ?? product.weight;
+
+  return {
+    id: product.productId ?? product.product_id ?? product.id,
+    name: normalizedName,
+    price: `$${price.toFixed(2)}`,
+    unit: weight === undefined || weight === null ? '' : `${weight} lb`,
+    stock: product.quantity ?? product.stock ?? 0,
+    icon: productIcons[iconKey] || '🛒',
+  };
+}
 
 function ShoppingPage() {
+  const [products, setProducts] = useState([]);
   const [search, setSearch] = useState('');
   const [quantities, setQuantities] = useState({});
   const [cartCount, setCartCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    async function loadInventory() {
+      setIsLoading(true);
+      setLoadError('');
+
+      try {
+        const response = await getInventory();
+        const inventory = Array.isArray(response)
+          ? response
+          : response?.products || response?.items || [];
+
+        if (isCurrent) setProducts(inventory.map(toDisplayProduct));
+      } catch (error) {
+        if (isCurrent) {
+          setLoadError(error instanceof Error ? error.message : 'Unable to load inventory.');
+        }
+      } finally {
+        if (isCurrent) setIsLoading(false);
+      }
+    }
+
+    loadInventory();
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   const visibleProducts = useMemo(() => {
     const query = search.trim().toLowerCase();
-    // cheap aah filter that needs to be replaced
     return query ? products.filter((product) => product.name.includes(query)) : products;
-  }, [search]);
+  }, [products, search]);
 
   // both of the functions below are ui/temp data only
   // the temp data bit needs to be replaced by a helper function that connects it to orderService.js
@@ -63,7 +112,15 @@ function ShoppingPage() {
             <ProductSearch value={search} onChange={setSearch} onClear={() => setSearch('')} />
           </div>
 
-          {visibleProducts.length > 0 ? (
+          {isLoading ? (
+            <p className="py-16 text-center font-display text-lg font-bold text-brand-green-700" role="status">
+              loading inventory...
+            </p>
+          ) : loadError ? (
+            <p className="py-16 text-center font-semibold text-red-700" role="alert">
+              {loadError}
+            </p>
+          ) : visibleProducts.length > 0 ? (
             <ProductGrid
               products={visibleProducts}
               quantities={quantities}

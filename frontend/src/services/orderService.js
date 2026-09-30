@@ -1,3 +1,31 @@
-// Future cart, checkout, and order API requests belong here.
-// this will connect to a helper function in apiClient.js that will manage auth and POST requrents to le backend server
-export {};
+function getCart() {}
+function addCartItem() {}
+function updateCartItemQuantity() {}
+function removeCartItem() {}
+function cancelCart() {}
+function checkoutCart() {}
+function getOrders() {}
+function getOrder() {}
+function cancelOrder() {}
+function getAccount() {}
+function updateAccount() {}
+function getPaymentMethods() {}
+function addPaymentMethod() {}
+function deletePaymentMethod() {}
+
+export {
+  addCartItem,
+  addPaymentMethod,
+  cancelCart,
+  cancelOrder,
+  checkoutCart,
+  deletePaymentMethod,
+  getAccount,
+  getCart,
+  getOrder,
+  getOrders,
+  getPaymentMethods,
+  removeCartItem,
+  updateAccount,
+  updateCartItemQuantity,
+};
