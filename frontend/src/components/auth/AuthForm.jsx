@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import Header from '../layout/Header';
 import { useState } from 'react';
-import { loginUser, signUpUser } from '../../services/userService';
+import { loginUser, signUpUser } from '../../services/customerService';
 
 function AuthForm({pageTitle}) {
   const navigate = useNavigate();
@@ -10,11 +10,6 @@ function AuthForm({pageTitle}) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  function validatePassword(password) {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,24}$/;
-    return regex.test(password);
-  }
-
   // Condition evaluates directly on every render
   const isSubmitButtonEnabled = 
     (pageTitle === "Login" &&
@@ -24,7 +19,7 @@ function AuthForm({pageTitle}) {
     (pageTitle === "Sign Up" &&
      name !== '' &&
      email !== '' &&
-     validatePassword(password) &&
+     password !== '' &&
      password === confirmPassword);
   
   async function handleSubmit(event) {

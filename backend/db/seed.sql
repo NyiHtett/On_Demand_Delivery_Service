@@ -12,13 +12,19 @@ INSERT INTO users (
 VALUES
     ('Anthony Kieu', 'anthony.k.130550@gmail.com', '11231231234',
      'One Washington Square, San Jose, CA 95192',
-     '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Customer'),
+     '$2a$10$1tWbGoleZtF7kNNkocXjpOGYlcMxtXtNthgAqufoQC4p4TquoFkam', 'Customer'),
     ('Nyi Htet', 'nyi.htet@sjsu.edu', '11231231234',
      'One Washington Square, San Jose, CA 95192',
-     '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Employee'),
+     '$2a$10$1tWbGoleZtF7kNNkocXjpOGYlcMxtXtNthgAqufoQC4p4TquoFkam', 'Employee'),
     ('Johnathan Aye', 'johnathan.aye@sjsu.edu', '11231231234',
      'One Washington Square, San Jose, CA 95192',
-     '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Employee');
+     '$2a$10$1tWbGoleZtF7kNNkocXjpOGYlcMxtXtNthgAqufoQC4p4TquoFkam', 'Employee')
+ON DUPLICATE KEY UPDATE
+    name = VALUES(name),
+    phone = VALUES(phone),
+    address = VALUES(address),
+    password_hash = VALUES(password_hash),
+    user_type = VALUES(user_type);
 
 
 INSERT INTO payment_methods (
@@ -35,19 +41,25 @@ VALUES
     ('5555555555554444', '456', '2029-03-31', 'Mastercard',
      'Nyi Htet', 'One Washington Square, San Jose, CA 95192'),
     ('378282246310005', '789', '2027-11-30', 'American Express',
-     'Johnathan Aye', 'One Washington Square, San Jose, CA 95192');
+     'Johnathan Aye', 'One Washington Square, San Jose, CA 95192')
+ON DUPLICATE KEY UPDATE
+    security_pin = VALUES(security_pin),
+    expiration_date = VALUES(expiration_date),
+    card_type = VALUES(card_type),
+    billing_name = VALUES(billing_name),
+    billing_address = VALUES(billing_address);
 
 
 -- only customers save payment methods in the application.
-INSERT INTO user_payment_methods (user_id, card_number)
+INSERT IGNORE INTO user_payment_methods (user_id, card_number)
 SELECT user_id, '1234567891011121'
 FROM users
 WHERE email = 'anthony.k.130550@gmail.com';
 
 
 INSERT INTO products (
-    name,
-    description,
+    product_name,
+    product_description,
     unit_weight,
     unit_price,
     image_url,
@@ -69,7 +81,13 @@ VALUES
     ('Milk', '1 gallon of milk', 8.601, 6.13,
      'https://media.istockphoto.com/id/496681092/photo/gallon-milk-bottle-with-blue-cap-isolated-on-white.jpg?s=612x612&w=0&k=20&c=vFIn8_k0QG118eoZIrFvVsPd5gcPMagYrGeIOfz6EsU=', 40),
     ('Romaine Lettuce', 'a fresh head of lettuce from eastern US', 1.753, 3.10,
-     'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQBP1rl94vEtDlHNlZO6_1EtQeahXfHWShaa-gevFyR3Q&s=10', 100);
+     'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQBP1rl94vEtDlHNlZO6_1EtQeahXfHWShaa-gevFyR3Q&s=10', 100)
+ON DUPLICATE KEY UPDATE
+    product_description = VALUES(product_description),
+    unit_weight = VALUES(unit_weight),
+    unit_price = VALUES(unit_price),
+    image_url = VALUES(image_url),
+    quantity = VALUES(quantity);
 
 
 /*

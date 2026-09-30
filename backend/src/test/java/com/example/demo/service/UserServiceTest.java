@@ -14,6 +14,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import com.example.demo.dao.UserDao;
+import com.example.demo.dto.AuthResponse;
 import com.example.demo.dto.SignUpRequest;
 import com.example.demo.dto.UserResponse;
 
@@ -29,11 +30,12 @@ public class UserServiceTest {
 
     when(userDao.getUserByEmail(email)).thenReturn(null);
     when(userDao.signUpUser(eq(name), eq(email), anyString()))
-        .thenReturn(new UserResponse(1L, name, email));
+        .thenReturn(new UserResponse(1L, name, email, "Customer"));
+    when(userDao.createSession(1L)).thenReturn("test-token");
 
     SignUpRequest request = new SignUpRequest(
       name, email, password);
-    UserResponse response = userService.signUpUser(request);
+    AuthResponse response = userService.signUpUser(request);
 
     ArgumentCaptor<String> hashCaptor = ArgumentCaptor.forClass(String.class);
     verify(userDao).signUpUser(eq(name), eq(email), hashCaptor.capture());
@@ -42,9 +44,10 @@ public class UserServiceTest {
         new BCryptPasswordEncoder()
             .matches(password, hashCaptor.getValue())
     );
-    assertTrue(response.id() == 1L);
-    assertTrue(response.name().equals(name));
-    assertTrue(response.email().equals(email));
+    assertTrue(response.user().id() == 1L);
+    assertTrue(response.user().name().equals(name));
+    assertTrue(response.user().email().equals(email));
+    assertTrue(response.apiToken().equals("test-token"));
   }
 
   @Test 
@@ -53,7 +56,7 @@ public class UserServiceTest {
     String email = "test@gmail.com";
     String password = "TestP@ssw0rd";
 
-    when(userDao.getUserByEmail(email)).thenReturn(new UserResponse(1L, name, email));
+    when(userDao.getUserByEmail(email)).thenReturn(new UserResponse(1L, name, email, "Customer"));
     SignUpRequest request = new SignUpRequest(
       name, email, password);
     assertThrows(RuntimeException.class, () -> userService.signUpUser(request));
@@ -92,7 +95,7 @@ public class UserServiceTest {
   public void signUpRejectsInvalidPassword() {
     String name = "test-name";
     String email = "test@gmail.com";
-    String password = "password";
+    String password = "";
 
     when(userDao.getUserByEmail(email)).thenReturn(null);
     SignUpRequest request = new SignUpRequest(

@@ -18,14 +18,10 @@ CREATE TABLE sessions (
     session_id VARCHAR(128) PRIMARY KEY,
     user_id INT NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    expires_at DATETIME NOT NULL,
-    revoked_at DATETIME DEFAULT NULL,
 
     FOREIGN KEY (user_id)
         REFERENCES users(user_id)
-        ON DELETE CASCADE,
-
-    CHECK (expires_at > created_at)
+        ON DELETE CASCADE
 );
 
 

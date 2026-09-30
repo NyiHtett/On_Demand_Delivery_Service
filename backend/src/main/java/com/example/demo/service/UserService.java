@@ -2,11 +2,14 @@ package com.example.demo.service;
 
 import java.util.List;
 import com.example.demo.dao.UserDao;
+import com.example.demo.dto.AuthResponse;
 import com.example.demo.dto.SignUpRequest;
 import com.example.demo.dto.UserResponse;
 import com.example.demo.dto.LoginRequest;
-import com.example.demo.model.User;
+import com.example.demo.exception.ApiException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -19,38 +22,48 @@ public class UserService {
         this.userDao = userDao;
     }
 
-    public List<User> getAllUsers() {
+    public List<UserResponse> getAllUsers() {
         return userDao.getAllUsers();
     }
 
-    // Service
-    public UserResponse loginUser(LoginRequest request) {
+    @Transactional
+    public AuthResponse loginUser(LoginRequest request) {
+        if (request.email() == null || request.password() == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Email and password are required.");
+        }
+
         String storedHash = userDao.getPasswordHashByEmail(request.email());
 
         if (storedHash == null || !passwordEncoder.matches(request.password(), storedHash)) {
-            throw new RuntimeException("Invalid email or password");
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid email or password.");
         }
 
-        return userDao.getUserByEmail(request.email());
+        UserResponse user = userDao.getUserByEmail(request.email());
+        String apiToken = userDao.createSession(user.id());
+        return new AuthResponse(apiToken, user);
     }
 
-    public UserResponse signUpUser(SignUpRequest request) {
-        if (request.name() == null)
-            throw new RuntimeException("Name cannot be null");
-        if (!request.email().matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"))
-            throw new RuntimeException("Email is not valid");
-        if (!request.password().matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,24}$"))
-            throw new RuntimeException("Password does not match criteria of 1 special character, 1 number, 1 uppercase letter, 1 lowercase letter, between 8 and 24 characters in length");
-        //hash request.password
+    @Transactional
+    public AuthResponse signUpUser(SignUpRequest request) {
+        if (request.name() == null || request.name().isBlank())
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Name is required.");
+        if (request.email() == null || !request.email().matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"))
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Email is not valid.");
+        if (request.password() == null || request.password().isBlank())
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Password is required.");
+
         String hashedPassword = hashPassword(request.password());
-        if (hashedPassword == null)
-            throw new RuntimeException("Unable to hash password");
 
-        //check if user exists 
         if (userDao.getUserByEmail(request.email()) != null)
-            throw new RuntimeException("User with email" + request.email() + " already exists!");
+            throw new ApiException(HttpStatus.CONFLICT, "A user with that email already exists.");
 
-        return userDao.signUpUser(request.name(), request.email(), hashedPassword);
+        UserResponse user = userDao.signUpUser(request.name(), request.email(), hashedPassword);
+        String apiToken = userDao.createSession(user.id());
+        return new AuthResponse(apiToken, user);
+    }
+
+    public void logoutUser(String apiToken) {
+        userDao.deleteSession(apiToken);
     }
 
     public String hashPassword(String password) {
