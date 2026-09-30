@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.servlet.http.HttpSession;
 
 
 @RestController
@@ -33,12 +34,23 @@ public class UserController {
         return userService.getAllUsers();
     }
     @PostMapping("/signup")
-    public UserResponse signUpUser(@RequestBody SignUpRequest request) {
-        return userService.signUpUser(request);
+    public UserResponse signUpUser(@RequestBody SignUpRequest request, HttpSession session) {
+        UserResponse user = userService.signUpUser(request);
+        session.setAttribute("email", user.email());
+        return user;
     }
 
     @PostMapping ("/login")
-    public UserResponse loginUser(@RequestBody LoginRequest request) {
-        return userService.loginUser(request);
-}
+    public UserResponse loginUser(@RequestBody LoginRequest request, HttpSession session) {
+        UserResponse user = userService.loginUser(request);
+        session.setAttribute("email", user.email());
+        return user;
+    }
+
+    @GetMapping ("/account")
+    public UserResponse accountUser(HttpSession session){
+        return userService.getUserByEmail((String) session.getAttribute("email"));
+    }
+
+
 }

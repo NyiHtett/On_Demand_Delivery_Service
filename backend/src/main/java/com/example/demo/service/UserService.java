@@ -53,6 +53,11 @@ public class UserService {
         return userDao.signUpUser(request.name(), request.email(), hashedPassword);
     }
 
+    public UserResponse getUserByEmail(String email) {
+        if (email == null) {throw new RuntimeException("Invalid email");}
+        return userDao.getUserByEmail(email);
+    }
+
     public String hashPassword(String password) {
         return passwordEncoder.encode(password);
     }

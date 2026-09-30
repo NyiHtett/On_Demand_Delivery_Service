@@ -9,7 +9,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http) {
         return http
             .csrf(csrf -> csrf.ignoringRequestMatchers(
     "/api/users/signup",
@@ -18,7 +18,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/users/login").permitAll()
-                .anyRequest().authenticated()
+                    .requestMatchers(HttpMethod.GET, "/api/users/account").permitAll()
+                    .anyRequest().authenticated()
             )
             .build();
     }
