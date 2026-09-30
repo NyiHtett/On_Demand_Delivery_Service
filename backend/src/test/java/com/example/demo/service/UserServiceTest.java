@@ -16,6 +16,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import com.example.demo.dao.UserDao;
 import com.example.demo.dto.SignUpRequest;
 import com.example.demo.dto.UserResponse;
+import com.example.demo.exception.BadSignUpInputException;
+import com.example.demo.exception.DuplicateEmailException;
 
 public class UserServiceTest {
   UserDao userDao = mock(UserDao.class);
@@ -56,7 +58,7 @@ public class UserServiceTest {
     when(userDao.getUserByEmail(email)).thenReturn(new UserResponse(1L, name, email));
     SignUpRequest request = new SignUpRequest(
       name, email, password);
-    assertThrows(RuntimeException.class, () -> userService.signUpUser(request));
+    assertThrows(DuplicateEmailException.class, () -> userService.signUpUser(request));
     //never called insert in DAO, rejected before
     verify(userDao, never()).signUpUser(anyString(), anyString(), anyString());
   }
@@ -69,7 +71,7 @@ public class UserServiceTest {
     when(userDao.getUserByEmail(email)).thenReturn(null);
     SignUpRequest request = new SignUpRequest(
       name, email, password);
-    assertThrows(RuntimeException.class, () -> userService.signUpUser(request));
+    assertThrows(BadSignUpInputException.class, () -> userService.signUpUser(request));
     //never called insert in DAO, rejected before
     verify(userDao, never()).signUpUser(anyString(), anyString(), anyString());
   }
@@ -83,7 +85,7 @@ public class UserServiceTest {
     when(userDao.getUserByEmail(email)).thenReturn(null);
     SignUpRequest request = new SignUpRequest(
       name, email, password);
-    assertThrows(RuntimeException.class, () -> userService.signUpUser(request));
+    assertThrows(BadSignUpInputException.class, () -> userService.signUpUser(request));
     //never called insert in DAO, rejected before
     verify(userDao, never()).signUpUser(anyString(), anyString(), anyString());
   }
@@ -97,7 +99,7 @@ public class UserServiceTest {
     when(userDao.getUserByEmail(email)).thenReturn(null);
     SignUpRequest request = new SignUpRequest(
       name, email, password);
-    assertThrows(RuntimeException.class, () -> userService.signUpUser(request));
+    assertThrows(BadSignUpInputException.class, () -> userService.signUpUser(request));
     //never called insert in DAO, rejected before
     verify(userDao, never()).signUpUser(anyString(), anyString(), anyString());
   }
