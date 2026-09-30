@@ -21,7 +21,12 @@ public class UserService {
     }
 
     public UserResponse signUpUser(SignUpRequest request) {
-        
+        if (request.name() == null)
+            throw new RuntimeException("Name cannot be null");
+        if (!request.email().matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"))
+            throw new RuntimeException("Email is not valid");
+        if (!request.password().matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,24}$"))
+            throw new RuntimeException("Password does not match criteria of 1 special character, 1 number, 1 uppercase letter, 1 lowercase letter, between 8 and 24 characters in length");
         //hash request.password
         String hashedPassword = hashPassword(request.password());
         if (hashedPassword == null)
