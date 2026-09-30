@@ -13,5 +13,4 @@ public record User(
         String userType,
         LocalDateTime createdAt, // LocalDateTime in Java, Timestamp in MySQL
         LocalDateTime updatedAt
-) {
-}
+) {}
