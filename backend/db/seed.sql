@@ -2,7 +2,7 @@
 -- it is a simple bcrypt hash.
 -- 
 INSERT INTO users (
-    name,
+    user_name,
     email,
     phone,
     address,
@@ -20,7 +20,7 @@ VALUES
      'One Washington Square, San Jose, CA 95192',
      '$2a$10$1tWbGoleZtF7kNNkocXjpOGYlcMxtXtNthgAqufoQC4p4TquoFkam', 'Employee')
 ON DUPLICATE KEY UPDATE
-    name = VALUES(name),
+    user_name = VALUES(user_name),
     phone = VALUES(phone),
     address = VALUES(address),
     password_hash = VALUES(password_hash),
