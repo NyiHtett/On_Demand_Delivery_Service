@@ -53,7 +53,13 @@ public class UserController {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "Authentication required.");
         }
 
-        userService.logoutUser(authorization.substring(7));
+        String apiToken = authorization.substring(7).trim();
+
+        if (apiToken.isEmpty()) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "Authentication required.");
+        }
+
+        userService.logoutUser(apiToken);
         return ResponseEntity.noContent().build();
     }
 }
