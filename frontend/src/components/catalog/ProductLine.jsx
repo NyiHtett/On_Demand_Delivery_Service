@@ -2,9 +2,10 @@
     each line contains the product image
     the name and the unit
     the price
-    and then three buttons */}
+    and then three buttons
+    most of these fields are now editable */}
 
-function ProductLine({ product, onDecrease, onIncrease, onWeightChange, onPriceChange }) {
+function ProductLine({ product, onDecrease, onIncrease, onWeightChange, onPriceChange, onStockChange }) {
   return (
     <div className="flex w-full items-center gap-4 rounded-2xl border-2 border-brand-green-100 bg-white p-4 transition-colors hover:border-brand-green-500">
       <div className="grid size-16 shrink-0 place-items-center rounded-xl border border-brand-green-100 bg-paper text-4xl">
@@ -13,12 +14,28 @@ function ProductLine({ product, onDecrease, onIncrease, onWeightChange, onPriceC
  
       <div className="min-w-0 flex-1">
         <h2 className="truncate font-display text-lg font-black text-ink">{product.name}</h2>
-        <input type="text" value={product.unit} onChange={(event)=>onWeightChange(event.target.value)}
-        className="w-full rounded border border-brand-green-100 px-2 text-sm text-ink/75"/>
+        <div className="flex items-center gap-1">
+          <input type="number" step="0.1" min="0" key={product.unit} defaultValue={product.unit.toFixed(3)} 
+          onBlur={(event)=> {
+            const weight = Math.max(0, Number(event.target.value || 0)).toFixed(3);
+            event.target.value = weight;
+            onWeightChange(weight);
+          }}
+          className="w-20 rounded border border-brand-green-100 px-2 text-sm text-ink/75"/>
+          <span className="text-sm text-ink/75">lb</span>
+        </div>
       </div>
  
-      <input type="text" value={product.price} onChange={(event)=>onPriceChange(event.target.value)}
-        className="hidden w-24 shrink-0 rounded border border-brand-green-100 px-2 font-display text-lg font-black text-brand-orange-500 sm:block"/>
+      <div className="hidden shrink-0 items-center gap-1 sm:flex">
+        <span className="font-display text-lg font-black text-brand-orange-500">$</span>
+        <input type="number" min="0" key={product.price} defaultValue={product.price}
+          onBlur={(event)=> {
+            const price = Math.max(0, Number(event.target.value || 0)).toFixed(2);
+            event.target.value = price;
+            onPriceChange(price);
+          }}
+          className="w-24 rounded border border-brand-green-100 px-2 font-display text-lg font-black text-brand-orange-500"/>
+      </div>
  
       <div className="grid shrink-0 grid-cols-[2.5rem_4rem_2.5rem] items-center gap-2">
         <button
@@ -29,11 +46,13 @@ function ProductLine({ product, onDecrease, onIncrease, onWeightChange, onPriceC
         >
           -
         </button>
-        <output
-          className="grid h-10 place-items-center rounded-lg border border-brand-green-100 font-bold"
-        >
-          {product.stock}
-        </output>
+        <input type="number" min="0" step="1" key = {product.stock} defaultValue={product.stock}
+          onBlur={(event) => {
+            const stock = Math.max(0, Number(event.target.value || 0));
+            event.target.value = stock;
+            onStockChange(stock);
+          }}
+          className="h-10 w-16 rounded-lg border border-brand-green-100 text-center font-bold"/>
         <button
           type="button"
           onClick={onIncrease}
