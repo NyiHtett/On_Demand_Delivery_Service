@@ -21,6 +21,7 @@ import com.example.demo.exception.ApiException;
 import com.example.demo.service.UserService;
 import tools.jackson.databind.ObjectMapper;
 import com.example.demo.dao.UserDao;
+import org.springframework.http.HttpStatus;
 
 @WebMvcTest (UserController.class)
 @Import(SecurityConfig.class)
@@ -29,6 +30,9 @@ public class UserControllerTest {
   MockMvc mockMvc;
   @MockitoBean 
   UserService userService;
+
+  @MockitoBean
+  UserDao userDao;
 
   @Test
   public void signUp_withValidAnonymousRequest_returnsUserResponse() throws Exception{
@@ -69,7 +73,8 @@ public class UserControllerTest {
       String apiUrl = "/api/users/signup";
 
       SignUpRequest request = new SignUpRequest(name, email, password);
-      when(userService.signUpUser(request)).thenThrow(ApiException.class);
+        when(userService.signUpUser(request)).thenThrow(
+          new ApiException(HttpStatus.CONFLICT, "A user with that email already exists."));
 
       ObjectMapper om = new ObjectMapper();
       String jsonRequest = om.writeValueAsString(request);
@@ -86,7 +91,8 @@ public class UserControllerTest {
       String apiUrl = "/api/users/signup";
 
       SignUpRequest request = new SignUpRequest(name, email, password);
-      when(userService.signUpUser(request)).thenThrow(ApiException.class);
+        when(userService.signUpUser(request)).thenThrow(
+          new ApiException(HttpStatus.BAD_REQUEST, "Name is required."));
 
       ObjectMapper om = new ObjectMapper();
       String jsonRequest = om.writeValueAsString(request);
@@ -102,7 +108,8 @@ public class UserControllerTest {
       String apiUrl = "/api/users/signup";
 
       SignUpRequest request = new SignUpRequest(name, email, password);
-      when(userService.signUpUser(request)).thenThrow(ApiException.class);
+        when(userService.signUpUser(request)).thenThrow(
+          new ApiException(HttpStatus.BAD_REQUEST, "Email is not valid."));
 
       ObjectMapper om = new ObjectMapper();
       String jsonRequest = om.writeValueAsString(request);
@@ -118,7 +125,8 @@ public class UserControllerTest {
       String apiUrl = "/api/users/signup";
 
       SignUpRequest request = new SignUpRequest(name, email, password);
-      when(userService.signUpUser(request)).thenThrow(ApiException.class);
+        when(userService.signUpUser(request)).thenThrow(
+          new ApiException(HttpStatus.BAD_REQUEST, "Password is not valid."));
 
       ObjectMapper om = new ObjectMapper();
       String jsonRequest = om.writeValueAsString(request);
