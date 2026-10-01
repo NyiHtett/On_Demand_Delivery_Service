@@ -120,6 +120,7 @@ public class UserDao {
             FROM sessions s
             JOIN users u ON u.user_id = s.user_id
             WHERE s.session_id = ?
+              AND s.created_at > DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 24 HOUR)
         """;
 
         List<UserResponse> users = jdbcTemplate.query(sql, (resultSet, rowNumber) ->
