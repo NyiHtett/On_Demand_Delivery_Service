@@ -14,12 +14,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 import com.example.demo.config.SecurityConfig;
+import com.example.demo.dto.AuthResponse;
 import com.example.demo.dto.SignUpRequest;
 import com.example.demo.dto.UserResponse;
-import com.example.demo.exception.BadSignUpInputException;
-import com.example.demo.exception.DuplicateEmailException;
+import com.example.demo.exception.ApiException;
 import com.example.demo.service.UserService;
 import tools.jackson.databind.ObjectMapper;
+import com.example.demo.dao.UserDao;
 
 @WebMvcTest (UserController.class)
 @Import(SecurityConfig.class)
@@ -37,7 +38,17 @@ public class UserControllerTest {
       String apiUrl = "/api/users/signup";
 
       SignUpRequest request = new SignUpRequest(name, email, password);
-      UserResponse response = new UserResponse(1L, name, email);
+      UserResponse user = new UserResponse(
+          1L,
+          name,
+          email,
+          "Customer"
+      );
+
+      AuthResponse response = new AuthResponse(
+          "test-token",
+          user
+      );  
       when(userService.signUpUser(request)).thenReturn(response);
 
       ObjectMapper om = new ObjectMapper();
@@ -45,9 +56,9 @@ public class UserControllerTest {
       mockMvc.perform(MockMvcRequestBuilders.post(apiUrl).content(jsonRequest)
           .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(1L))
-        .andExpect(jsonPath("$.name").value(name))
-        .andExpect(jsonPath("$.email").value(email));
+        .andExpect(jsonPath("$.user.id").value(1L))
+        .andExpect(jsonPath("$.user.name").value(name))
+        .andExpect(jsonPath("$.user.email").value(email));
   }
 
   @Test
@@ -58,7 +69,7 @@ public class UserControllerTest {
       String apiUrl = "/api/users/signup";
 
       SignUpRequest request = new SignUpRequest(name, email, password);
-      when(userService.signUpUser(request)).thenThrow(DuplicateEmailException.class);
+      when(userService.signUpUser(request)).thenThrow(ApiException.class);
 
       ObjectMapper om = new ObjectMapper();
       String jsonRequest = om.writeValueAsString(request);
@@ -75,7 +86,7 @@ public class UserControllerTest {
       String apiUrl = "/api/users/signup";
 
       SignUpRequest request = new SignUpRequest(name, email, password);
-      when(userService.signUpUser(request)).thenThrow(BadSignUpInputException.class);
+      when(userService.signUpUser(request)).thenThrow(ApiException.class);
 
       ObjectMapper om = new ObjectMapper();
       String jsonRequest = om.writeValueAsString(request);
@@ -91,7 +102,7 @@ public class UserControllerTest {
       String apiUrl = "/api/users/signup";
 
       SignUpRequest request = new SignUpRequest(name, email, password);
-      when(userService.signUpUser(request)).thenThrow(BadSignUpInputException.class);
+      when(userService.signUpUser(request)).thenThrow(ApiException.class);
 
       ObjectMapper om = new ObjectMapper();
       String jsonRequest = om.writeValueAsString(request);
@@ -107,7 +118,7 @@ public class UserControllerTest {
       String apiUrl = "/api/users/signup";
 
       SignUpRequest request = new SignUpRequest(name, email, password);
-      when(userService.signUpUser(request)).thenThrow(BadSignUpInputException.class);
+      when(userService.signUpUser(request)).thenThrow(ApiException.class);
 
       ObjectMapper om = new ObjectMapper();
       String jsonRequest = om.writeValueAsString(request);
