@@ -65,6 +65,7 @@ INSERT INTO products (
     image_url,
     quantity
 )
+
 VALUES
     ('Apple', 'fresh apples from California', 0.400, 1.00,
      'https://marketplace.canva.com/Pk_Vc/MAFsWnPk_Vc/1/tl/canva-red-apple-fruit-MAFsWnPk_Vc.png', 100),

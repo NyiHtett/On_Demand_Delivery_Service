@@ -28,7 +28,7 @@ public class UserDao {
         // sql statement 
         // DESCRIBE the table to know the columns
         String sql = """
-            SELECT user_id, name, email, user_type
+            SELECT user_id, user_name AS name, email, user_type
             FROM users
             ORDER BY user_id
         """;
@@ -46,7 +46,7 @@ public class UserDao {
 
     
     public UserResponse signUpUser(String name, String email, String passwordHash) {
-        String sql = "INSERT INTO users (name, email, password_hash, user_type) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO users (user_name, email, password_hash, user_type) VALUES (?, ?, ?, ?)";
         
         // KeyHolder is used to capture the auto-generated User ID
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -72,7 +72,7 @@ public class UserDao {
 
     public UserResponse getUserByEmail(String email) {
         String sql = """
-            SELECT user_id, name, email, user_type
+            SELECT user_id, user_name AS name, email, user_type
             FROM users
             WHERE email = ?;
         """;
@@ -116,7 +116,7 @@ public class UserDao {
 
     public Optional<UserResponse> getUserBySessionId(String sessionId) {
         String sql = """
-            SELECT u.user_id, u.name, u.email, u.user_type
+            SELECT u.user_id, u.user_name AS name, u.email, u.user_type
             FROM sessions s
             JOIN users u ON u.user_id = s.user_id
             WHERE s.session_id = ?
