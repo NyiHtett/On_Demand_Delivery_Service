@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 
 @RestController
@@ -32,10 +33,12 @@ public class UserController {
     /**
      * Get mapping handles GET requests
      */
+    @PreAuthorize("hasRole('EMPLOYEE')")
     @GetMapping
     public List<UserResponse> getAllUsers() {
         return userService.getAllUsers();
     }
+    
     @PostMapping("/signup")
     public AuthResponse signUpUser(@RequestBody SignUpRequest request) {
         return userService.signUpUser(request);
@@ -47,6 +50,7 @@ public class UserController {
     }
 
     @PostMapping("/logout")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> logoutUser(HttpServletRequest request) {
         String authorization = request.getHeader("Authorization");
         if (authorization == null || !authorization.startsWith("Bearer ")) {
