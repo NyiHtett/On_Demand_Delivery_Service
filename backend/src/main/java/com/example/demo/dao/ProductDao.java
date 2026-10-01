@@ -51,4 +51,12 @@ public class ProductDao {
             resultSet.getInt("quantity")
         );
     }
+
+    public int updateQuantity(long productId, int quantity) {
+        return jdbcTemplate.update(
+            "UPDATE products SET quantity = ? WHERE product_id = ?",
+            quantity,
+            productId
+        );
+    }
 }
