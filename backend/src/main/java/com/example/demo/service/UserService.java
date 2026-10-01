@@ -28,36 +28,72 @@ public class UserService {
 
     @Transactional
     public AuthResponse loginUser(LoginRequest request) {
-        if (request.email() == null || request.password() == null) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Email and password are required.");
+        if (request == null ||
+            request.email() == null ||
+            request.password() == null ||
+            request.email().isBlank() ||
+            request.password().isBlank()) {
+            throw new ApiException(
+                HttpStatus.BAD_REQUEST,
+                "Email and password are required."
+            );
         }
 
-        String storedHash = userDao.getPasswordHashByEmail(request.email());
+        String email = request.email().trim().toLowerCase();
+        String storedHash = userDao.getPasswordHashByEmail(email);
 
-        if (storedHash == null || !passwordEncoder.matches(request.password(), storedHash)) {
-            throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid email or password.");
+        if (storedHash == null ||
+            !passwordEncoder.matches(request.password(), storedHash)) {
+            throw new ApiException(
+                HttpStatus.UNAUTHORIZED,
+                "Invalid email or password."
+            );
         }
 
-        UserResponse user = userDao.getUserByEmail(request.email());
+        UserResponse user = userDao.getUserByEmail(email);
         String apiToken = userDao.createSession(user.id());
         return new AuthResponse(apiToken, user);
     }
 
     @Transactional
     public AuthResponse signUpUser(SignUpRequest request) {
-        if (request.name() == null || request.name().isBlank())
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Name is required.");
-        if (request.email() == null || !request.email().matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"))
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Email is not valid.");
-        if (request.password() == null || request.password().isBlank())
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Password is required.");
+        if (request == null) {
+            throw new ApiException(
+                HttpStatus.BAD_REQUEST,
+                "Name, email, and password are required."
+            );
+        }
 
+        if (request.name() == null || request.name().isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Name is required.");
+        }
+
+        if (request.email() == null ||
+            !request.email().matches(
+                "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+            )) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Email is not valid.");
+        }
+
+        if (request.password() == null || request.password().isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Password is required.");
+        }
+        String email = request.email().trim().toLowerCase();
         String hashedPassword = hashPassword(request.password());
 
-        if (userDao.getUserByEmail(request.email()) != null)
-            throw new ApiException(HttpStatus.CONFLICT, "A user with that email already exists.");
+        if (userDao.getUserByEmail(email) != null) {
+            throw new ApiException(
+                HttpStatus.CONFLICT,
+                "A user with that email already exists."
+            );
+        }
 
-        UserResponse user = userDao.signUpUser(request.name(), request.email(), hashedPassword);
+        UserResponse user = userDao.signUpUser(
+            request.name().trim(),
+            email,
+            hashedPassword
+        );
+
         String apiToken = userDao.createSession(user.id());
         return new AuthResponse(apiToken, user);
     }
