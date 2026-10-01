@@ -52,7 +52,7 @@ class UserDaoTest {
       String password = "TestP@ssw0rd";
 
       jdbcTemplate.update(
-        "INSERT INTO users (name, email, password_hash, user_type) VALUES (?, ?, ?, ?)",
+        "INSERT INTO users (user_name, email, password_hash, user_type) VALUES (?, ?, ?, ?)",
         name,
         email,
         password,
