@@ -95,7 +95,7 @@ public class UserServiceTest {
   public void signUpRejectsInvalidPassword() {
     String name = "test-name";
     String email = "test@gmail.com";
-    String password = "";
+    String password = "password";
 
     when(userDao.getUserByEmail(email)).thenReturn(null);
     SignUpRequest request = new SignUpRequest(

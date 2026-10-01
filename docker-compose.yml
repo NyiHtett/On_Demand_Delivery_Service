@@ -24,7 +24,7 @@ services:
       # Spring Boot should use this user instead of root
       MYSQL_USER: delivery_user
 
-      # Password for the regular application user
+      # Password for the regular application user 
       MYSQL_PASSWORD: delivery_password
 
     # Connects the computer's port 3306 to the container's port 3306
@@ -35,10 +35,10 @@ services:
     # Data remains even if the container is stopped or recreated
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./backend/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
-      - ./backend/db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
-
-
+      - ./backend/db/00-test-database.sql:/docker-entrypoint-initdb.d/00-test-database.sql:ro
+      - ./backend/db/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./backend/db/02-seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+      - ./backend/db/03-test-schema.sql:/docker-entrypoint-initdb.d/03-test-schema.sql:ro
 # Declares the named Docker volume used above
 volumes:
   mysql_data:
