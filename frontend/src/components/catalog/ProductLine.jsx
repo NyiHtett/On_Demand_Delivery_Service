@@ -15,7 +15,7 @@ function ProductLine({ product, onDecrease, onIncrease, onWeightChange, onPriceC
       <div className="min-w-0 flex-1">
         <h2 className="truncate font-display text-lg font-black text-ink">{product.name}</h2>
         <div className="flex items-center gap-1">
-          <input type="number" step="0.1" min="0" key={product.unit} defaultValue={product.unit.toFixed(3)} 
+          <input type="number" step="0.1" min="0" key={product.unit} defaultValue={Number(product.unit).toFixed(3)} 
           onBlur={(event)=> {
             const weight = Math.max(0, Number(event.target.value || 0)).toFixed(3);
             event.target.value = weight;

@@ -52,11 +52,27 @@ public class ProductDao {
         );
     }
 
-    public int updateQuantity(long productId, int quantity) {
+    public int updateProduct(long productId, int quantity, java.math.BigDecimal unitPrice, java.math.BigDecimal unitWeight) {
         return jdbcTemplate.update(
-            "UPDATE products SET quantity = ? WHERE product_id = ?",
+            "UPDATE products SET quantity = ?, unit_price = ?, unit_weight = ? WHERE product_id = ?",
             quantity,
+            unitPrice,
+            unitWeight,
             productId
+        );
+    }
+
+    public long createProduct(String name, String description, java.math.BigDecimal unitWeight, java.math.BigDecimal unitPrice, String imageURL, int quantity) {
+        jdbcTemplate.update(
+            "INSERT INTO products (product_name, product_description, unit_weight, unit_price, image_url, quantity) " +
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            name, description, unitWeight, unitPrice, imageURL, quantity
+        );
+
+        return jdbcTemplate.queryForObject(
+            "SELECT product_id FROM products WHERE product_name = ?",
+            Long.class,
+            name
         );
     }
 }

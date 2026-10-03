@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import ProductTable from '../components/catalog/ProductTable';
 import ProductSearch from '../components/catalog/ProductSearch';
-import { getInventory, updateProductQuantity } from '../services/productService';
+import { getInventory, updateProduct } from '../services/productService';
+import CreateProductForm from "../components/manager/CreateProductForm";
  
 const productIcons = {
   apple: '🍎',
@@ -54,7 +55,9 @@ function ManagerPage() {
   const changedProducts = useMemo(() => {
     return products.filter((product) => {
       const saved = savedProducts.find((p) => p.id === product.id);
-      return saved && saved.stock !== product.stock;
+      return saved && (
+        saved.stock !== product.stock || Number(saved.price) !== Number(product.price) || Number(saved.unit) !== Number(product.unit)
+      );
     });
   } , [products, savedProducts]);
 
@@ -95,12 +98,22 @@ function ManagerPage() {
 
     try{
       await Promise.all(
-        changedProducts.map((product) => updateProductQuantity(product.id, product.stock))
+        changedProducts.map((product) => 
+          updateProduct(product.id, {
+            quantity: product.stock,
+            unitPrice: Number(product.price),
+            unitWeight: Number(product.unit),
+          })
+      )
       );
       setSavedProducts(products);
     } catch (error) {
       alert('Save failed: ' + error.message);
     }
+  }
+  
+  async function handleCreateProduct() {
+    return 0;
   }
 
   return (
@@ -110,7 +123,7 @@ function ManagerPage() {
 
       {hasChanges && (
         <div className="sticky top-0 z-10 mt-4 flex items-center justify-between rounded-xl border-2 border-brand-orange-500 bg-white p-3">
-          <span className="font-bold text-ink">{changedProducts.length} unsaved change(s)</span>
+          <span className="font-bold text-ink">{changedProducts.length} unsaved product(s)</span>
           <div className="flex gap-2">
             <button type="button" onClick={handleUndo}
               className="rounded-lg border-2 border-brand-green-500 px-4 py-2 font-bold text-brand-green-700 hover:bg-brand-green-50">
@@ -127,6 +140,8 @@ function ManagerPage() {
       <div className="my-7">
             <ProductSearch value={search} onChange={setSearch} onClear={() => setSearch('')} />
           </div>
+          
+      <CreateProductForm onCreate={handleCreateProduct} />
  
       <div className="mt-4">
         {visibleProducts.length > 0 ? (
