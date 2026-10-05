@@ -14,10 +14,16 @@ function getTokenFromResponse(response) {
 
 function storeTokenFromResponse(response) {
   const token = getTokenFromResponse(response);
-  if (token) localStorage.setItem(API_TOKEN_KEY, token);
+
+  if (!token) {
+    throw new Error(
+      'Authentication succeeded without a session token.'
+    );
+  }
+
+  localStorage.setItem(API_TOKEN_KEY, token);
   return response;
 }
-
 // actual helper function stuff
 async function signUpUser(signUpData) {
   const response = await post('/users/signup', signUpData, { auth: false });
