@@ -1,16 +1,15 @@
-import { get, put } from './apiClient';
+import { get, put, post } from './apiClient';
 
 function getInventory() {
   return get('/products', { auth: true });
 }
 function getProduct() {}
-function createProduct() {}
-function updateProduct() {}
-
-function updateProductQuantity(productId, quantity) {
-  return put(`/products/${productId}/quantity`, { quantity });
+function createProduct(product) {
+  return post('/products', product);
 }
-
+function updateProduct(productId, product) {
+  return put(`/products/${productId}`, product)
+}
 function deleteProduct() {}
 function getInventoryUpdates() {}
 function getCustomerOrders() {}
@@ -25,5 +24,4 @@ export {
   getProduct,
   updateOrderStatus,
   updateProduct,
-  updateProductQuantity,
 };

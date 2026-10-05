@@ -1,23 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import ProductTable from '../components/catalog/ProductTable';
 import ProductSearch from '../components/catalog/ProductSearch';
-import { getInventory, updateProductQuantity } from '../services/productService';
+import { getInventory, updateProduct, createProduct } from '../services/productService';
+import CreateProductForm from "../components/manager/CreateProductForm";
  
-const productIcons = {
-  apple: '🍎',
-  avocado: '🥑',
-  banana: '🍌',
-  carrot: '🥕',
-  lettuce: '🥬',
-  milk: '🥛',
-  toast: '🍞',
-  tomato: '🍅',
-};
 
 function toDisplayProduct(product) {
   const name = product.name || 'product';
   const normalizedName = name.toLowerCase();
-  const iconKey = Object.keys(productIcons).find((key) => normalizedName.includes(key));
   const price = Number(product.unitPrice ?? product.unit_price ?? product.price ?? 0);
   const weight = product.unitWeight ?? product.unit_weight ?? product.weight;
 
@@ -27,7 +17,8 @@ function toDisplayProduct(product) {
     price: price.toFixed(2),
     unit: weight ?? '',
     stock: product.quantity ?? product.stock ?? 0,
-    icon: productIcons[iconKey] || '🛒',
+    description: product.description ?? null,
+    imageUrl: product.imageUrl ?? null
   };
 }
  
@@ -54,7 +45,10 @@ function ManagerPage() {
   const changedProducts = useMemo(() => {
     return products.filter((product) => {
       const saved = savedProducts.find((p) => p.id === product.id);
-      return saved && saved.stock !== product.stock;
+      return saved && (
+        saved.stock !== product.stock || Number(saved.price) !== Number(product.price) || Number(saved.unit) !== Number(product.unit) ||
+        (saved.description ?? '') !== (product.description ?? '') || (saved.imageUrl ?? '') !== (product.imageUrl ?? '')
+      );
     });
   } , [products, savedProducts]);
 
@@ -85,6 +79,15 @@ function ManagerPage() {
     );
   }
 
+  function changeDescription(productId, description) {
+    setProducts((current) => current.map((product) => product.id === productId ? {...product, description: description } : product)
+  );
+  }
+
+  function changeImageUrl(productId, imageUrl) {
+    setProducts((current) => current.map((product) => product.id === productId ? {...product, imageUrl: imageUrl} : product));
+  }
+
   function handleUndo() {
     setProducts(savedProducts);
   }
@@ -95,11 +98,32 @@ function ManagerPage() {
 
     try{
       await Promise.all(
-        changedProducts.map((product) => updateProductQuantity(product.id, product.stock))
+        changedProducts.map((product) => 
+          updateProduct(product.id, {
+            quantity: product.stock,
+            unitPrice: Number(product.price),
+            unitWeight: Number(product.unit),
+            description: product.description,
+            imageUrl: product.imageUrl
+          })
+      )
       );
       setSavedProducts(products);
     } catch (error) {
       alert('Save failed: ' + error.message);
+    }
+  }
+  
+  async function handleCreateProduct(newProduct) {
+    try {
+      const created = await createProduct(newProduct);
+      const display = toDisplayProduct(created);
+      setProducts((current) => [...current, display]);
+      setSavedProducts((current) => [...current, display]);
+      return true;
+    } catch (error) {
+      alert('error creating ' + error.message);
+      return false;
     }
   }
 
@@ -110,7 +134,7 @@ function ManagerPage() {
 
       {hasChanges && (
         <div className="sticky top-0 z-10 mt-4 flex items-center justify-between rounded-xl border-2 border-brand-orange-500 bg-white p-3">
-          <span className="font-bold text-ink">{changedProducts.length} unsaved change(s)</span>
+          <span className="font-bold text-ink">{changedProducts.length} unsaved product(s)</span>
           <div className="flex gap-2">
             <button type="button" onClick={handleUndo}
               className="rounded-lg border-2 border-brand-green-500 px-4 py-2 font-bold text-brand-green-700 hover:bg-brand-green-50">
@@ -127,6 +151,8 @@ function ManagerPage() {
       <div className="my-7">
             <ProductSearch value={search} onChange={setSearch} onClear={() => setSearch('')} />
           </div>
+          
+      <CreateProductForm onCreate={handleCreateProduct} />
  
       <div className="mt-4">
         {visibleProducts.length > 0 ? (
@@ -137,6 +163,8 @@ function ManagerPage() {
             onWeightChange={(id, value) => changeUnit(id, value)}
             onPriceChange={(id, value) => changePrice(id, value)}
             onStockChange={(id, value) => setStock(id, value)}
+            onDescriptionChange={(id, value) => changeDescription(id, value)}
+            onImageUrlChange={(id, value) => changeImageUrl(id, value)}
           />
         ) : (
           <p className="rounded-2xl border-2 border-dashed border-brand-green-100 p-8 text-center text-ink/75">
