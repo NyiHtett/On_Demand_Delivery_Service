@@ -10,7 +10,6 @@ function CreateProductForm( { onCreate } ) {
     const [quantity, setQuantity] = useState('');
 
     function resetForm() {
-        function resetForm() {
         setName('');
         setDescription('');
         setWeight('');
@@ -18,7 +17,6 @@ function CreateProductForm( { onCreate } ) {
         setImageUrl('');
         setQuantity('');
         setIsOpen(false);
-        }
     }
 
     async function handleSubmit(event) {

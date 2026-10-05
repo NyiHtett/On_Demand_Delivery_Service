@@ -4,7 +4,9 @@ function getInventory() {
   return get('/products', { auth: true });
 }
 function getProduct() {}
-function createProduct() {}
+function createProduct(product) {
+  return post('/products', product);
+}
 function updateProduct(productId, product) {
   return put(`/products/${productId}`, product)
 }

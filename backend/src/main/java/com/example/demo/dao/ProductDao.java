@@ -52,12 +52,14 @@ public class ProductDao {
         );
     }
 
-    public int updateProduct(long productId, int quantity, java.math.BigDecimal unitPrice, java.math.BigDecimal unitWeight) {
+    public int updateProduct(long productId, int quantity, java.math.BigDecimal unitPrice, java.math.BigDecimal unitWeight, String description, String imageUrl) {
         return jdbcTemplate.update(
-            "UPDATE products SET quantity = ?, unit_price = ?, unit_weight = ? WHERE product_id = ?",
+            "UPDATE products SET quantity = ?, unit_price = ?, unit_weight = ?, product_description = ?, image_url = ? WHERE product_id = ?",
             quantity,
             unitPrice,
             unitWeight,
+            description,
+            imageUrl,
             productId
         );
     }

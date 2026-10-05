@@ -4,12 +4,24 @@
     the price
     and then three buttons
     most of these fields are now editable */}
+    import { useState, useEffect } from 'react';
 
-function ProductLine({ product, onDecrease, onIncrease, onWeightChange, onPriceChange, onStockChange }) {
+function ProductLine({ product, onDecrease, onIncrease, onWeightChange, onPriceChange, onStockChange, onDescriptionChange, onImageUrlChange }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  useEffect(() => {
+    setImageFailed(false);
+  }, [product.imageUrl]);
+
   return (
     <div className="flex w-full items-center gap-4 rounded-2xl border-2 border-brand-green-100 bg-white p-4 transition-colors hover:border-brand-green-500">
       <div className="grid size-16 shrink-0 place-items-center rounded-xl border border-brand-green-100 bg-paper text-4xl">
-        <span role="img">{product.icon}</span>
+        {
+          product.imageUrl && !imageFailed ? (
+            <img src={product.imageUrl} alt={product.name} className="size-full object-cover" onError={(e) => setImageFailed(true)}/>
+          ) : (
+            <span role="img">🛒</span>
+          )
+        }
       </div>
  
       <div className="min-w-0 flex-1">
@@ -24,6 +36,16 @@ function ProductLine({ product, onDecrease, onIncrease, onWeightChange, onPriceC
           className="w-20 rounded border border-brand-green-100 px-2 text-sm text-ink/75"/>
           <span className="text-sm text-ink/75">lb</span>
         </div>
+
+        <input type="text" placeholder="product description here..." maxLength={1000}
+          key={product.description ?? ''} defaultValue={product.description ?? ''}
+          onBlur={(event) => onDescriptionChange(event.target.value.trim() || null)}
+          className="mt-1 w-full rounded border border-brand-green-100 px-2 text-sm text-ink/75"/>
+
+        <input type="url" placeholder="image url here..." maxLength={5000}
+          key={product.imageUrl ?? ''} defaultValue={product.imageUrl ?? ''}
+          onBlur={(event) => onImageUrlChange(event.target.value.trim() || null)}
+          className="mt-1 w-full rounded border border-brand-green-100 px-2 text-sm text-ink/75"/>
       </div>
  
       <div className="hidden shrink-0 items-center gap-1 sm:flex">

@@ -1,24 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import ProductTable from '../components/catalog/ProductTable';
 import ProductSearch from '../components/catalog/ProductSearch';
-import { getInventory, updateProduct } from '../services/productService';
+import { getInventory, updateProduct, createProduct } from '../services/productService';
 import CreateProductForm from "../components/manager/CreateProductForm";
  
-const productIcons = {
-  apple: '🍎',
-  avocado: '🥑',
-  banana: '🍌',
-  carrot: '🥕',
-  lettuce: '🥬',
-  milk: '🥛',
-  toast: '🍞',
-  tomato: '🍅',
-};
 
 function toDisplayProduct(product) {
   const name = product.name || 'product';
   const normalizedName = name.toLowerCase();
-  const iconKey = Object.keys(productIcons).find((key) => normalizedName.includes(key));
   const price = Number(product.unitPrice ?? product.unit_price ?? product.price ?? 0);
   const weight = product.unitWeight ?? product.unit_weight ?? product.weight;
 
@@ -28,7 +17,8 @@ function toDisplayProduct(product) {
     price: price.toFixed(2),
     unit: weight ?? '',
     stock: product.quantity ?? product.stock ?? 0,
-    icon: productIcons[iconKey] || '🛒',
+    description: product.description ?? null,
+    imageUrl: product.imageUrl ?? null
   };
 }
  
@@ -56,7 +46,8 @@ function ManagerPage() {
     return products.filter((product) => {
       const saved = savedProducts.find((p) => p.id === product.id);
       return saved && (
-        saved.stock !== product.stock || Number(saved.price) !== Number(product.price) || Number(saved.unit) !== Number(product.unit)
+        saved.stock !== product.stock || Number(saved.price) !== Number(product.price) || Number(saved.unit) !== Number(product.unit) ||
+        (saved.description ?? '') !== (product.description ?? '') || (saved.imageUrl ?? '') !== (product.imageUrl ?? '')
       );
     });
   } , [products, savedProducts]);
@@ -88,6 +79,15 @@ function ManagerPage() {
     );
   }
 
+  function changeDescription(productId, description) {
+    setProducts((current) => current.map((product) => product.id === productId ? {...product, description: description } : product)
+  );
+  }
+
+  function changeImageUrl(productId, imageUrl) {
+    setProducts((current) => current.map((product) => product.id === productId ? {...product, imageUrl: imageUrl} : product));
+  }
+
   function handleUndo() {
     setProducts(savedProducts);
   }
@@ -103,6 +103,8 @@ function ManagerPage() {
             quantity: product.stock,
             unitPrice: Number(product.price),
             unitWeight: Number(product.unit),
+            description: product.description,
+            imageUrl: product.imageUrl
           })
       )
       );
@@ -112,8 +114,17 @@ function ManagerPage() {
     }
   }
   
-  async function handleCreateProduct() {
-    return 0;
+  async function handleCreateProduct(newProduct) {
+    try {
+      const created = await createProduct(newProduct);
+      const display = toDisplayProduct(created);
+      setProducts((current) => [...current, display]);
+      setSavedProducts((current) => [...current, display]);
+      return true;
+    } catch (error) {
+      alert('error creating ' + error.message);
+      return false;
+    }
   }
 
   return (
@@ -152,6 +163,8 @@ function ManagerPage() {
             onWeightChange={(id, value) => changeUnit(id, value)}
             onPriceChange={(id, value) => changePrice(id, value)}
             onStockChange={(id, value) => setStock(id, value)}
+            onDescriptionChange={(id, value) => changeDescription(id, value)}
+            onImageUrlChange={(id, value) => changeImageUrl(id, value)}
           />
         ) : (
           <p className="rounded-2xl border-2 border-dashed border-brand-green-100 p-8 text-center text-ink/75">

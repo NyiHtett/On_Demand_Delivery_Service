@@ -40,7 +40,7 @@ public class ProductService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "price and weight have to be positive numbers");
         }
 
-        int numUpdate = productDao.updateProduct(productId, req.quantity(), req.unitPrice(), req.unitWeight());
+        int numUpdate = productDao.updateProduct(productId, req.quantity(), req.unitPrice(), req.unitWeight(), req.description(), req.imageUrl());
         if (numUpdate == 0) {
             throw new ApiException(HttpStatus.NOT_FOUND, "product does not exist");
         }
