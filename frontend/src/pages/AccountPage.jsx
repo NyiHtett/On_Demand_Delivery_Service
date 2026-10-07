@@ -1,30 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from '../components/layout/Header';
 import AccountForm from '../components/account/AccountForm';
 import PaymentMethod from '../components/account/PaymentMethod';
+import {
+  getCurrentUser,
+  updateCurrentUser,
+} from '../services/customerService';
+
+function toProfile(account) {
+  return {
+    id: account.id ?? account.user_id,
+    name: account.name ?? account.user_name ?? '',
+    email: account.email ?? '',
+    address: account.address ?? '',
+    phone: account.phone ?? '',
+    userType: account.userType ?? account.user_type ?? '',
+  };
+}
 
 function AccountPage() {
-  // Temporary role for testing.
-  // Change to "customer" or "employee".
-  const activeRole = 'customer';
+  const [profile, setProfile] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [profileError, setProfileError] = useState('');
+  const activeRole = profile?.userType?.toLowerCase();
 
-  const profiles = {
-    customer: {
-      name: 'Customer Joe',
-      email: 'customerjoe@gmail.com',
-      address: 'One Washington Square, San Jose, CA 95192',
-      phone: '112-312-31234',
-    },
-
-    employee: {
-      name: 'Employee Joe',
-      email: 'employeejoe@sjsu.edu',
-      address: 'Two Washington Square, San Jose, CA 95192',
-      phone: '234-345-6789',
-    },
-  };
-
-  // Employees do not have payment methods.
   const paymentMethodsByRole = {
     customer: [
       {
@@ -37,8 +37,6 @@ function AccountPage() {
     ],
   };
 
-  const [profile, setProfile] = useState(profiles[activeRole]);
-
   const [paymentMethods, setPaymentMethods] = useState(
     paymentMethodsByRole[activeRole] || [],
   );
@@ -50,9 +48,43 @@ function AccountPage() {
   const [paymentForm, setPaymentForm] = useState({
     cardNumber: '',
     cardType: 'Visa',
-    billingName: profile.name,
+    billingName: '',
     expirationDate: '',
   });
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    async function loadAccount() {
+      try {
+        const account = await getCurrentUser();
+        if (!isCurrent) return;
+
+        const nextProfile = toProfile(account);
+        setProfile(nextProfile);
+        setPaymentMethods(paymentMethodsByRole[nextProfile.userType.toLowerCase()] || []);
+        setPaymentForm((currentPayment) => ({
+          ...currentPayment,
+          billingName: nextProfile.name,
+        }));
+      } catch (error) {
+        if (isCurrent) {
+          setProfileError(
+            error instanceof Error
+              ? error.message
+              : 'Unable to load account information.',
+          );
+        }
+      } finally {
+        if (isCurrent) setIsLoading(false);
+      }
+    }
+
+    loadAccount();
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   function handleProfileChange(event) {
     const { name, value } = event.target;
@@ -65,9 +97,25 @@ function AccountPage() {
     setProfileMessage('');
   }
 
-  function handleProfileUpdate(event) {
+  async function handleProfileUpdate(event) {
     event.preventDefault();
-    setProfileMessage('Account information updated.');
+    setIsSaving(true);
+    setProfileMessage('');
+    setProfileError('');
+
+    try {
+      const updatedAccount = await updateCurrentUser(profile);
+      setProfile(toProfile(updatedAccount));
+      setProfileMessage('Account information updated.');
+    } catch (error) {
+      setProfileError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to update account information.',
+      );
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function handlePaymentChange(event) {
@@ -161,6 +209,28 @@ function AccountPage() {
     setPaymentMessage('Payment method deleted.');
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-paper px-5 pb-10 sm:px-8 lg:px-12">
+        <Header showCart cartCount={0} />
+        <p className="py-16 text-center font-display text-lg font-bold text-brand-green-700" role="status">
+          loading account information...
+        </p>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-paper px-5 pb-10 sm:px-8 lg:px-12">
+        <Header showCart cartCount={0} />
+        <p className="py-16 text-center font-semibold text-red-700" role="alert">
+          {profileError || 'Unable to load account information.'}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-paper px-5 pb-10 sm:px-8 lg:px-12">
       <div className="mx-auto max-w-4xl">
@@ -185,7 +255,8 @@ function AccountPage() {
             profile={profile}
             onChange={handleProfileChange}
             onSubmit={handleProfileUpdate}
-            message={profileMessage}
+            message={profileError || profileMessage}
+            isSaving={isSaving}
           />
 
           {activeRole === 'customer' && (
@@ -348,8 +419,22 @@ function AccountPage() {
                   )}
                 </div>
               </form>
+
+               
             </section>
           )}
+          <div className="mt-8 flex justify-center">
+            <button
+              onClick={() => {
+                localStorage.removeItem('api_token');
+                window.location.href = '/login';
+              }}
+              type="button"
+              className="min-h-12 rounded-xl bg-red-600 px-6 font-display font-bold text-white transition-colors hover:bg-red-700 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-red-500"
+            >
+              Log out
+            </button>
+          </div>
         </main>
       </div>
     </div>

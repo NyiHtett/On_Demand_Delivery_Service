@@ -1,7 +1,9 @@
 package com.example.demo.controller;
 
 import java.util.List;
+import java.util.Optional;
 
+import com.example.demo.dto.AccountResponse;
 import com.example.demo.dto.AuthResponse;
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.SignUpRequest;
@@ -17,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.access.prepost.PreAuthorize;
-
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @RestController
 
@@ -59,5 +61,11 @@ public class UserController {
 
         userService.logoutUser(authorization.substring(7));
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping ("/me")
+    @PreAuthorize("isAuthenticated()")
+    public Optional<AccountResponse> getCurrentAccount(@AuthenticationPrincipal UserResponse user) {
+        return userService.getCurrentAccount(user.id());
     }
 }

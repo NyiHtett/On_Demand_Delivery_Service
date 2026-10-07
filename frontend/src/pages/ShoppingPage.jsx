@@ -28,6 +28,7 @@ function toDisplayProduct(product) {
     price: `$${price.toFixed(2)}`,
     unit: weight === undefined || weight === null ? '' : `${weight} lb`,
     stock: product.quantity ?? product.stock ?? 0,
+    imageUrl: product.imageUrl ?? product.image_url ?? '',
     icon: productIcons[iconKey] || '🛒',
   };
 }

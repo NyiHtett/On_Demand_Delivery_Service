@@ -1,7 +1,10 @@
 package com.example.demo.service;
 
 import java.util.List;
+import java.util.Optional;
+
 import com.example.demo.dao.UserDao;
+import com.example.demo.dto.AccountResponse;
 import com.example.demo.dto.AuthResponse;
 import com.example.demo.dto.SignUpRequest;
 import com.example.demo.dto.UserResponse;
@@ -24,6 +27,11 @@ public class UserService {
 
     public List<UserResponse> getAllUsers() {
         return userDao.getAllUsers();
+    }
+
+    @Transactional 
+    public Optional<AccountResponse> getCurrentAccount(Long user_id) {
+        return userDao.getCurrentAccountByUserId(user_id);
     }
 
     @Transactional

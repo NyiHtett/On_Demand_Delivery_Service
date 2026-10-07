@@ -10,6 +10,9 @@ import AccountPage from './pages/AccountPage';
 import ManagerPage from './pages/ManagerPage';
 import NotFoundPage from './pages/NotFoundPage';
 
+//testing
+import ShoppingOffersPage from './pages/ShoppingOffersPage';
+
 function App() {
   return (
     <Routes>
@@ -22,6 +25,7 @@ function App() {
         <Route path="/sign-up" element={<SignUpPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/manager" element={<ManagerPage />} />
+        <Route path="/shop-offers" element={<ShoppingOffersPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
