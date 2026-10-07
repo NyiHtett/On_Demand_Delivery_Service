@@ -2,9 +2,19 @@ function ProductCard({ product, quantity, onDecrease, onIncrease, onAddToCart })
   return (
     <article className="flex h-full min-h-80 flex-col rounded-2xl border-2 border-brand-green-100 bg-white p-4 text-center transition-colors hover:border-brand-green-500">
       <div className="mx-auto grid size-24 place-items-center rounded-xl border border-brand-green-100 bg-paper text-6xl">
-        <span role="img" aria-label={product.name}>{product.icon}</span>
+        {product.imageUrl ? (
+  <img
+    src={product.imageUrl}
+    alt={product.name}
+    className="size-full object-cover"
+  />
+) : (
+  <span role="img" aria-label={product.name}>
+    {product.icon}
+  </span>
+)}
       </div>
-
+--
       <div className="mt-3">
         <h2 className="font-display text-lg font-black text-ink">{product.name}</h2>
         <p className="mt-1 font-display text-lg font-black text-brand-orange-500">{product.price}</p>

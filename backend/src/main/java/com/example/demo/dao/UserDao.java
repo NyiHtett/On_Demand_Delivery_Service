@@ -1,5 +1,6 @@
 package com.example.demo.dao;
 
+import com.example.demo.dto.AccountResponse;
 import com.example.demo.dto.UserResponse;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -136,5 +137,32 @@ public class UserDao {
 
     public void deleteSession(String sessionId) {
         jdbcTemplate.update("DELETE FROM sessions WHERE session_id = ?", sessionId);
+    }
+
+    public Optional<AccountResponse> getCurrentAccountByUserId(Long user_id) {
+        String sql = """
+                SELECT
+                    u.user_id, 
+                    u.user_name, 
+                    u.email, 
+                    u.phone, 
+                    u.address, 
+                    u.user_type
+                FROM sessions s
+                JOIN users u ON u.user_id = s.user_id
+                WHERE s.user_id = ?
+                """;
+
+        return jdbcTemplate.query(sql, (resultSet, rowNumber) -> 
+            new AccountResponse(
+                resultSet.getLong("user_id"),
+                resultSet.getString("user_name"),
+                resultSet.getString("email"),
+                resultSet.getString("address"),
+                resultSet.getString("phone"),
+                resultSet.getString("user_type")
+            ), user_id
+    ).stream().findFirst();
+        
     }
 }
