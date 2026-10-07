@@ -64,11 +64,11 @@ public class ProductDao {
         );
     }
 
-    public long createProduct(String name, String description, java.math.BigDecimal unitWeight, java.math.BigDecimal unitPrice, String imageURL, int quantity) {
+    public long createProduct(String name, String description, java.math.BigDecimal unitWeight, java.math.BigDecimal unitPrice, String imageUrl, int quantity) {
         jdbcTemplate.update(
             "INSERT INTO products (product_name, product_description, unit_weight, unit_price, image_url, quantity) " +
             "VALUES (?, ?, ?, ?, ?, ?)",
-            name, description, unitWeight, unitPrice, imageURL, quantity
+            name, description, unitWeight, unitPrice, imageUrl, quantity
         );
 
         return jdbcTemplate.queryForObject(
@@ -76,5 +76,9 @@ public class ProductDao {
             Long.class,
             name
         );
+    }
+
+    public int deleteProduct(long productId) {
+        return jdbcTemplate.update("DELETE FROM products WHERE product_id = ?", productId);
     }
 }

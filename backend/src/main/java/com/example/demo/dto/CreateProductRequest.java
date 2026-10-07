@@ -7,6 +7,6 @@ public record CreateProductRequest (
     String description,
     BigDecimal unitWeight,
     BigDecimal unitPrice,
-    String imageURL,
+    String imageUrl,
     Integer quantity
 ) {}
