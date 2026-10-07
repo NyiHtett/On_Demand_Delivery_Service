@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import ProductTable from '../components/catalog/ProductTable';
+import ProductTable from '../components/manager/ProductTable';
 import ProductSearch from '../components/catalog/ProductSearch';
 import { getInventory, updateProduct, createProduct, deleteProduct } from '../services/productService';
 import CreateProductForm from "../components/manager/CreateProductForm";

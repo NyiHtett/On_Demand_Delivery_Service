@@ -94,7 +94,7 @@ function AccountForm({ profile, onChange, onSubmit, message }) {
             className="min-h-12 rounded-xl bg-brand-green-600 px-6 font-display font-bold text-white transition-colors hover:bg-brand-green-700 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-orange-400"
           >
             update information
-          </button>
+          </button>      
 
           {message && (
             <p className="text-sm font-bold text-brand-green-700">
