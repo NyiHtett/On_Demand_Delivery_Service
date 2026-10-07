@@ -2,7 +2,7 @@
 
 import ProductLine from './ProductLine';
  
-function ProductTable({ products, onDecrease, onIncrease, onWeightChange, onPriceChange, onStockChange, onDescriptionChange, onImageUrlChange }) {
+function ProductTable({ products, onDecrease, onIncrease, onWeightChange, onPriceChange, onStockChange, onDescriptionChange, onImageUrlChange, onDelete }) {
   return (
     <ul className="flex flex-col gap-3">
       {products.map((product) => (
@@ -16,6 +16,7 @@ function ProductTable({ products, onDecrease, onIncrease, onWeightChange, onPric
             onStockChange={(value) => onStockChange(product.id, value)}
             onDescriptionChange={(value) => onDescriptionChange(product.id, value)}
             onImageUrlChange={(value) => onImageUrlChange(product.id, value)}
+            onDelete = {() => onDelete(product.id)}
           />
         </li>
       ))}

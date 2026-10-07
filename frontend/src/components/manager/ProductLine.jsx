@@ -6,7 +6,7 @@
     most of these fields are now editable */}
     import { useState, useEffect } from 'react';
 
-function ProductLine({ product, onDecrease, onIncrease, onWeightChange, onPriceChange, onStockChange, onDescriptionChange, onImageUrlChange }) {
+function ProductLine({ product, onDecrease, onIncrease, onWeightChange, onPriceChange, onStockChange, onDescriptionChange, onImageUrlChange, onDelete }) {
   const [imageFailed, setImageFailed] = useState(false);
   useEffect(() => {
     setImageFailed(false);
@@ -83,6 +83,8 @@ function ProductLine({ product, onDecrease, onIncrease, onWeightChange, onPriceC
           +
         </button>
       </div>
+
+      <button type="button" onClick={onDelete} className="grid size-10 shrink-0 place-items-center rounded-lg border-2 border-red-300 font-bold text-red-600 hover:bg-red-50">X</button>
     </div>
   );
 }

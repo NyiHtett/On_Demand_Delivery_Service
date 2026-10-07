@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import ProductTable from '../components/manager/ProductTable';
 import ProductSearch from '../components/catalog/ProductSearch';
-import { getInventory, updateProduct, createProduct } from '../services/productService';
+import { getInventory, updateProduct, createProduct, deleteProduct } from '../services/productService';
 import CreateProductForm from "../components/manager/CreateProductForm";
  
 
@@ -127,6 +127,20 @@ function ManagerPage() {
     }
   }
 
+  async function handleDeleteProduct(productId) {
+    const product = products.find((p) => p.id === productId);
+    const deleteok = window.confirm(`Delete "${product.name}"?`);
+    if (!deleteok) return;
+
+    try {
+      await deleteProduct(productId);
+      setProducts((current) => current.filter((p) => p.id !== productId));
+      setSavedProducts((current) => current.filter((p) => p.id !== productId))
+    } catch (e) {
+      alert("Failure deleting: " + e.message)
+    } 
+  }
+
   return (
     <main className="mx-auto w-full max-w-5xl p-4 sm:p-6">
       <h1 className="font-display text-3xl font-black text-ink">Employee Product Dashboard</h1>
@@ -165,6 +179,7 @@ function ManagerPage() {
             onStockChange={(id, value) => setStock(id, value)}
             onDescriptionChange={(id, value) => changeDescription(id, value)}
             onImageUrlChange={(id, value) => changeImageUrl(id, value)}
+            onDelete = {(id) => handleDeleteProduct(id)}
           />
         ) : (
           <p className="rounded-2xl border-2 border-dashed border-brand-green-100 p-8 text-center text-ink/75">
