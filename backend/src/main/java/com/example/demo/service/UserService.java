@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.example.demo.dto.AccountRequest;
 
 @Service
 public class UserService {
@@ -106,6 +107,15 @@ public class UserService {
         return new AuthResponse(apiToken, user);
     }
 
+    public AccountResponse updateCurrentAccount(Long user_id, AccountRequest accountRequest) {
+        String name = accountRequest.name().trim();
+        String email = accountRequest.email().trim();
+        String phone = accountRequest.phone().trim();
+        String Address = accountRequest.address().trim();
+        userDao.updateAccount(user_id, name, email, phone, Address);
+        return userDao.getCurrentAccountByUserId(user_id).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Account not found."));
+    }
+
     public void logoutUser(String apiToken) {
         userDao.deleteSession(apiToken);
     }
@@ -113,4 +123,6 @@ public class UserService {
     public String hashPassword(String password) {
         return passwordEncoder.encode(password);
     }
+
+
 }

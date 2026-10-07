@@ -165,4 +165,8 @@ public class UserDao {
     ).stream().findFirst();
         
     }
+
+    public int updateAccount(long userID, String name, String email, String phone, String address) {
+        return jdbcTemplate.update("UPDATE users SET user_name = ?, email = ?, phone = ?, address = ? WHERE user_id = ?",  name, email, phone, address, userID);
+    }
 }

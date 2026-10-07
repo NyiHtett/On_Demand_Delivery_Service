@@ -4,6 +4,6 @@ public record AccountRequest(
     String name,
     String email,
     String address,
-    String phoneNumber
+    String phone
 ) {
 }
