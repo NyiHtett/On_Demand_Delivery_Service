@@ -3,6 +3,8 @@ import Header from '../layout/Header';
 import { useState } from 'react';
 import { loginUser, signUpUser } from '../../services/customerService';
 
+const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+
 function AuthForm({pageTitle}) {
   const navigate = useNavigate();
   const [name, setName] = useState('');
@@ -10,7 +12,7 @@ function AuthForm({pageTitle}) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  // Condition evaluates directly on every render
+  const isValidSignupPassword = PASSWORD_PATTERN.test(password);
   const isSubmitButtonEnabled = 
     (pageTitle === "Login" &&
      email !== '' &&
@@ -20,6 +22,7 @@ function AuthForm({pageTitle}) {
      name !== '' &&
      email !== '' &&
      password !== '' &&
+    isValidSignupPassword &&
      password === confirmPassword);
   
   async function handleSubmit(event) {
@@ -107,6 +110,8 @@ function AuthForm({pageTitle}) {
               <input
                 id="password"
                 type="password"
+                pattern={pageTitle === 'Sign Up' ? PASSWORD_PATTERN.source : undefined}
+                minLength={pageTitle === 'Sign Up' ? 8 : undefined}
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
                 placeholder="Enter your password..."

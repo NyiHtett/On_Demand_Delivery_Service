@@ -15,6 +15,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 public class UserService {
+    private static final String PASSWORD_PATTERN =
+        "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d]).{8,}$";
+
     private final UserDao userDao;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -77,6 +80,9 @@ public class UserService {
 
         if (request.password() == null || request.password().isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Password is required.");
+        }
+        if (!request.password().matches(PASSWORD_PATTERN)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Weak Password, include 1 special char, 1 uppercase letter, 1 lowercase letter, 1 number, and 8 or more total characters.");
         }
         String email = request.email().trim().toLowerCase();
         String hashedPassword = hashPassword(request.password());
