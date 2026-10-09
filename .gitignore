@@ -36,3 +36,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Local Codex/project context; do not commit or push.
+LOCAL_PROJECT_CONTEXT.md
