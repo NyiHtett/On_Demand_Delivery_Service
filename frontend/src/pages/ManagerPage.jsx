@@ -3,6 +3,8 @@ import ProductTable from '../components/manager/ProductTable';
 import ProductSearch from '../components/catalog/ProductSearch';
 import { getInventory, updateProduct, createProduct, deleteProduct } from '../services/productService';
 import CreateProductForm from "../components/manager/CreateProductForm";
+import TrackingPanel from '../components/manager/TrackingPanel';
+import { getTracking } from '../services/trackingService';
  
 
 function toDisplayProduct(product) {
@@ -26,6 +28,10 @@ function ManagerPage() {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState('');
   const [savedProducts, setSavedProducts] = useState([]);
+  const [activeView, setActiveView] = useState('inventory');
+  const [tracking, setTracking] = useState(null);
+  const [trackingLoading, setTrackingLoading] = useState(false);
+  const [trackingError, setTrackingError] = useState('');
 
   useEffect(() => {
     getInventory().then((data) => {
@@ -35,6 +41,22 @@ function ManagerPage() {
     }).catch((error) => console.error('Issue loading products: ', error));
   }
 , []);
+
+  async function loadTracking() {
+    setTrackingLoading(true);
+    setTrackingError('');
+    try {
+      setTracking(await getTracking());
+    } catch (error) {
+      setTrackingError(error.message || 'Unable to load tracking data.');
+    } finally {
+      setTrackingLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (activeView === 'tracking') loadTracking();
+  }, [activeView]);
  
   {/* What this basically does is dynamically update the visible productions object*/}
   const visibleProducts = useMemo(() => {
@@ -146,7 +168,14 @@ function ManagerPage() {
       <h1 className="font-display text-3xl font-black text-ink">Employee Product Dashboard</h1>
       <p className="mt-1 text-sm text-ink/75">Search products and adjust their stock.</p>
 
-      {hasChanges && (
+      <div className="mt-6 flex gap-2 border-b-2 border-brand-green-100">
+        <button type="button" onClick={() => setActiveView('inventory')} className={`px-4 py-3 font-bold ${activeView === 'inventory' ? 'border-b-4 border-brand-green-600 text-brand-green-700' : 'text-ink/60'}`}>Inventory</button>
+        <button type="button" onClick={() => setActiveView('tracking')} className={`px-4 py-3 font-bold ${activeView === 'tracking' ? 'border-b-4 border-brand-green-600 text-brand-green-700' : 'text-ink/60'}`}>Track deliveries</button>
+      </div>
+
+      {activeView === 'tracking' && <TrackingPanel tracking={tracking} loading={trackingLoading} error={trackingError} onRefresh={loadTracking} />}
+
+      {activeView === 'inventory' && hasChanges && (
         <div className="sticky top-0 z-10 mt-4 flex items-center justify-between rounded-xl border-2 border-brand-orange-500 bg-white p-3">
           <span className="font-bold text-ink">{changedProducts.length} unsaved product(s)</span>
           <div className="flex gap-2">
@@ -162,13 +191,13 @@ function ManagerPage() {
         </div>
       )}
  
-      <div className="my-7">
+      {activeView === 'inventory' && <div className="my-7">
             <ProductSearch value={search} onChange={setSearch} onClear={() => setSearch('')} />
-          </div>
+          </div>}
           
-      <CreateProductForm onCreate={handleCreateProduct} />
+      {activeView === 'inventory' && <CreateProductForm onCreate={handleCreateProduct} />}
  
-      <div className="mt-4">
+      {activeView === 'inventory' && <div className="mt-4">
         {visibleProducts.length > 0 ? (
           <ProductTable
             products={visibleProducts}
@@ -186,7 +215,7 @@ function ManagerPage() {
             No products match "{search.trim()}".
           </p>
         )}
-      </div>
+      </div>}
     </main>
   );
 }
