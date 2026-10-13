@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "pretest:e2e": "docker compose -f ../docker-compose.yml up -d",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@tailwindcss/vite": "latest",
@@ -17,5 +19,8 @@
     "react-router-dom": "latest",
     "tailwindcss": "latest",
     "vite": "latest"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0"
   }
 }
