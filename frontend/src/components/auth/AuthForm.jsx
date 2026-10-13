@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { loginUser, signUpUser } from '../../services/customerService';
 
 const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 function AuthForm({pageTitle}) {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ function AuthForm({pageTitle}) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
+  const isValidEmail = EMAIL_PATTERN.test(email);
   const isValidSignupPassword = PASSWORD_PATTERN.test(password);
   // Condition evaluates directly on every render
   const isSubmitButtonEnabled = 
@@ -23,6 +25,7 @@ function AuthForm({pageTitle}) {
     (pageTitle === "Sign Up" &&
      name !== '' &&
      email !== '' &&
+     isValidEmail &&
      password !== '' &&
      isValidSignupPassword &&
      password === confirmPassword);
