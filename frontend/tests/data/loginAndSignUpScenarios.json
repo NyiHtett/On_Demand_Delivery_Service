@@ -1,0 +1,37 @@
+[
+  {
+    "role": "Successful User",
+    "name": "test-user",
+    "email": "test.user@gmail.com",
+    "password": "aaAA88**",
+    "submit": false
+  },
+  {
+    "role": "Weak Password User",
+    "name": "test-user",
+    "email": "test.user@gmail.com",
+    "password": "password",
+    "submit": false
+  },  
+  {
+    "role": "Invalid Email User",
+    "name": "test-user",
+    "email": "invalidEmail",
+    "password": "aaAA88**",
+    "submit": false
+  },    
+  {
+    "role": "Duplicate Email User",
+    "name": "test-user",
+    "email": "test.user@gmail.com",
+    "password": "aaAA88**",
+    "submit": false
+  },  
+  {
+    "role": "No Name User",
+    "name": "",
+    "email": "test.user@gmail.com",
+    "password": "aaAA88**",
+    "submit": false
+  }
+]
