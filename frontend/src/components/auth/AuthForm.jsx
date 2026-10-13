@@ -20,6 +20,7 @@ function AuthForm({pageTitle}) {
   const isSubmitButtonEnabled = 
     (pageTitle === "Login" &&
      email !== '' &&
+     isValidEmail &&
      password !== '')
       ||
     (pageTitle === "Sign Up" &&
