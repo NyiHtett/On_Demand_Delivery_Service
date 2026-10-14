@@ -6,7 +6,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public class OrderDao {
@@ -36,8 +35,8 @@ public class OrderDao {
     }
 
     public List<OrderResponse>getAllOrders() {
-        return jdbcTempalte.query(
-            "SELECT order_id, customer_id, cart_id, card_number, order_status, delivery_adress, subtotal, delivery_fee, total_weight FROM orders ORDER BY created_at DESC",
+        return jdbcTemplate.query(
+            "SELECT order_id, customer_id, cart_id, card_number, order_status, delivery_address, subtotal, delivery_fee, total_weight FROM orders ORDER BY created_at DESC",
             (resultSet, rowNumber) -> mapOrder(resultSet)   
         );
     }
