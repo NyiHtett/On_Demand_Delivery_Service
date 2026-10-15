@@ -36,7 +36,8 @@ export default defineConfig({
   retries: 1,
   reportSlowTests: { max: 5, threshold: 60_000 },
 
-  reporter: [['list'], ['html', { outputFolder: reportDir, open: CI ? 'never' : 'always' }]],
+  // Do not launch a new browser window for the report after every test run.
+  reporter: [['list'], ['html', { outputFolder: reportDir, open: 'never' }]],
 
   expect: { timeout: 15_000 },
 
