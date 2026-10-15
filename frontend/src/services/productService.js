@@ -19,16 +19,12 @@ function deleteProduct(productId) {
 }
 
 function getInventoryUpdates() {}
-function getCustomerOrders() {}
-function updateOrderStatus() {}
 
 export {
   createProduct,
   deleteProduct,
-  getCustomerOrders,
   getInventory,
   getInventoryUpdates,
   getProduct,
-  updateOrderStatus,
   updateProduct,
 };

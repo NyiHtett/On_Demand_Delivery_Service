@@ -9,6 +9,7 @@ import SignUpPage from './pages/SignUpPage';
 import AccountPage from './pages/AccountPage';
 import ManagerPage from './pages/ManagerPage';
 import NotFoundPage from './pages/NotFoundPage';
+import OrdersTable from './components/manager/OrdersTable';
 
 //testing
 import ShoppingOffersPage from './pages/ShoppingOffersPage';
@@ -25,6 +26,7 @@ function App() {
         <Route path="/sign-up" element={<SignUpPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/manager" element={<ManagerPage />} />
+        <Route path="/manager/orders" element={<OrdersTable />} />
         <Route path="/shop-offers" element={<ShoppingOffersPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
