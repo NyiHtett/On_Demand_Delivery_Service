@@ -42,3 +42,8 @@
     -webkit-tap-highlight-color: transparent;
   }
 }
+
+/* Darken the free OpenStreetMap raster tiles without a map-provider key. */
+.dark-map-tiles {
+  filter: invert(100%) hue-rotate(180deg) brightness(0.78) contrast(0.92);
+}

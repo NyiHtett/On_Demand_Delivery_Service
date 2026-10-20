@@ -155,4 +155,68 @@ Retrieves all customers from the `customers` table.
 
 ```http
 GET http://localhost:8080/api/customers
+```
+
+## Testing
+
+### Backend tests
+
+From the project root:
+
+```powershell
+cd backend
+.\mvnw.cmd test
+```
+
+### Playwright end-to-end tests
+
+Make sure Docker Desktop is running. From the project root:
+
+```powershell
+cd frontend
+npm install
+npx playwright install chromium
+npm run test:e2e
+```
+
+The Playwright setup automatically starts:
+
+- MySQL through Docker Compose
+- The Spring Boot backend
+- The Vite frontend
+
+### Complete test suite
+
+From the project root:
+
+```powershell
+docker compose up -d
+
+cd backend
+.\mvnw.cmd test
+
+cd ..\frontend
+npm run test:e2e
+```
+
+### Run a specific Playwright test
+
+```powershell
+cd frontend
+npx playwright test tests/loginAndSignUp/testRunner.spec.js
+```
+
+### Run Playwright with the browser visible
+
+```powershell
+cd frontend
+npx playwright test --headed
+```
+
+### View the Playwright report
+
+```powershell
+cd frontend
+npx playwright show-report
+```
 

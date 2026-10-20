@@ -1,106 +1,37 @@
-import { Fragment, useEffect, useState } from 'react';
-import { getOrders, updateOrderStatus } from '../../services/orderService';
-
-const STATUS_LIST = ['Active', 'Ordered', 'Cancelled', 'Shipping', 'Completed'];
-const STATUS_LOCK = ['Shipping', 'Completed'];
-
-function OrdersTable() {
-  const [orders, setOrders] = useState([]);
-  const [expandedIds, setExpandedIds] = useState([]);
-
-  useEffect(() => {
-    getOrders().then((data) => {
-      console.log("orders from backend: ", data);
-      setOrders(data);
-    }).catch((e) => console.error("issue loading errors: ", e));
-  }, []);
-
-  function toggleExpanded(orderId) {
-    setExpandedIds((current) => 
-      current.includes(orderId) ? current.filter((id) => id !== orderId) : [...current, orderId]
-    )
-  }
-
-  async function handleStatusChange(order, newStatus) {
-    const change = window.confirm(`Change order #${order.orderId} from ${order.orderStatus} to ${newStatus}`)
-    if (!change) return;
-
-    try {
-      await updateOrderStatus(order.orderId, newStatus);
-      setOrders((current) => 
-        current.map((o) => (o.orderId === order.orderId ? {...o, orderStatus : newStatus } : o))
-      );
-    } catch (e) {
-      alert('Status change failed: ' + e.message);
-    }
+function OrdersTable({ orders }) {
+  if (!orders.length) {
+    return (
+      <section className="rounded-2xl border-2 border-dashed border-brand-green-100 bg-white p-8 text-center">
+        <p className="font-display text-xl font-black text-brand-green-700">No active deliveries</p>
+        <p className="mt-1 text-sm text-ink/65">New orders will appear here when they are ready for delivery.</p>
+      </section>
+    );
   }
 
   return (
-    <section className="mt-4 overflow-x-auto rounded-xl border-2 border-brand-green-100">
-      <table className="w-full text-left text-sm text-ink">
-        <thead className="bg-brand-green-50 font-bold">
-          <tr>
-            {/* putting arrows in the column to expand the orders */}
-            <th className="p-3"></th>
-            <th className="p-3">Order #</th>
-            <th className="p-3">Customer ID</th>
-            <th className="p-3">Items</th>
-            <th className="p-3">Weight (lbs)</th>
-            <th className="p-3">Total</th>
-            <th className="p-3">Status</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {orders.map((order) => {
-            const total = Number(order.subtotal) + Number(order.deliveryFee);
-            const isExpanded = expandedIds.includes(order.orderId);
-
-            return (
-              <Fragment key={order.orderId}>
-                <tr className="border-t border-brand-green-100">
-                  <td className="p-3">
-                    <button type="button" onClick={() => toggleExpanded(order.orderId)} className="font-bold text-brand-green-700">
-                      {isExpanded ? '▾': '▸'}
-                    </button>
-                  </td>
-                  <td className="p-3 font-bold">#{order.orderId}</td>
-                  <td className="p-3">{order.customerId}</td>
-                  <td className="p-3">{order.items.length}</td>
-                  <td className="p-3">{order.totalWeight}</td>
-                  <td className="p-3">${Number(total).toFixed(2)}</td>
-                  <td className="p-3">
-                    <select
-                      value={order.orderStatus}
-                      disabled={STATUS_LOCK.includes(order.orderStatus)}
-                      onChange={(e) => handleStatusChange(order, e.target.value)}
-                      className="rounded-lg border-2 border-brand-green-500 px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        {STATUS_LIST.map((status) => (
-                          <option key={status} value={status}>{status}</option>
-                        ))}
-                      </select>
-                  </td>
-                </tr>
-
-                {isExpanded && (
-                  <tr className="bg-brand-green-50">
-                    <td colSpan={7} className="p-3 pl-12">
-                      <p className="mb-2 text-ink/75">Deliver to: {order.deliveryAddress}</p>
-                      {order.items.map((item) => (
-                        <p key = {item.orderItemId}>
-                          {item.quantity} x {item.productName} @ ${Number(item.unitPrice).toFixed(2)} and {item.unitWeight} lbs per unit; price: ${(Number(item.quantity) * Number(item.unitPrice)).toFixed(2)}, weight: {(Number(item.quantity) * Number(item.unitWeight)).toFixed(3)}
-                        </p>
-                      ))}
-                      <p>Delivery Fee: ${order.deliveryFee.toFixed(2)}</p>
-                    </td>
-                  </tr>
-                ) /*this part is the expansion part when the user clicks the arrow*/}
-              </Fragment>
-            )
-          })}
-        </tbody>
-      </table>
+    <section className="overflow-hidden rounded-2xl border-2 border-brand-green-100 bg-white">
+      <div className="border-b border-brand-green-100 px-5 py-4">
+        <h2 className="font-display text-xl font-black text-ink">Active orders</h2>
+        <p className="text-sm text-ink/65">The delivery order is the current route sequence.</p>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[680px] text-left text-sm">
+          <thead className="bg-brand-green-50 text-xs uppercase tracking-wide text-brand-green-700">
+            <tr><th className="px-5 py-3">Route stop</th><th className="px-5 py-3">Order ID</th><th className="px-5 py-3">Customer</th><th className="px-5 py-3">Address</th><th className="px-5 py-3">Status</th></tr>
+          </thead>
+          <tbody>
+            {orders.map((order, index) => (
+              <tr key={order.orderId} className="border-t border-brand-green-100">
+                <td className="px-5 py-4"><span className="rounded-full bg-brand-orange-100 px-3 py-1 text-xs font-black text-brand-orange-500">Stop {index + 1}</span></td>
+                <td className="px-5 py-4 font-bold">Order #{order.orderId}</td>
+                <td className="px-5 py-4">{order.customerName}</td>
+                <td className="max-w-xs px-5 py-4 text-ink/75">{order.deliveryAddress}</td>
+                <td className="px-5 py-4"><span className="rounded-full bg-brand-green-50 px-3 py-1 text-xs font-bold text-brand-green-700">{order.deliveryTaskStatus || order.orderStatus}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }

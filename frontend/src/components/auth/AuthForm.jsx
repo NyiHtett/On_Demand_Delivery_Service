@@ -3,6 +3,9 @@ import Header from '../layout/Header';
 import { useState } from 'react';
 import { loginUser, signUpUser } from '../../services/customerService';
 
+const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
 function AuthForm({pageTitle}) {
   const navigate = useNavigate();
   const [name, setName] = useState('');
@@ -10,16 +13,22 @@ function AuthForm({pageTitle}) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+
+  const isValidEmail = EMAIL_PATTERN.test(email);
+  const isValidSignupPassword = PASSWORD_PATTERN.test(password);
   // Condition evaluates directly on every render
   const isSubmitButtonEnabled = 
     (pageTitle === "Login" &&
      email !== '' &&
+     isValidEmail &&
      password !== '')
       ||
     (pageTitle === "Sign Up" &&
      name !== '' &&
      email !== '' &&
+     isValidEmail &&
      password !== '' &&
+     isValidSignupPassword &&
      password === confirmPassword);
   
   async function handleSubmit(event) {
@@ -107,6 +116,8 @@ function AuthForm({pageTitle}) {
               <input
                 id="password"
                 type="password"
+                pattern={pageTitle === 'Sign Up' ? PASSWORD_PATTERN.source : undefined}
+                minLength={pageTitle === 'Sign Up' ? 8 : undefined}
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
                 placeholder="Enter your password..."

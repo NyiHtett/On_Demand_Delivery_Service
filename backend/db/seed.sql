@@ -12,13 +12,13 @@ INSERT INTO users (
 VALUES
     ('Anthony Kieu', 'anthony.k.130550@gmail.com', '11231231234',
      'One Washington Square, San Jose, CA 95192',
-     '$2a$10$1tWbGoleZtF7kNNkocXjpOGYlcMxtXtNthgAqufoQC4p4TquoFkam', 'Customer'),
+     '$2a$10$MROHWY27yUHhbx1jRu1IXOSr9ilUJgbkEPCWylhHDNQ5kNpNeuLue', 'Customer'),
     ('Nyi Htet', 'nyi.htet@sjsu.edu', '11231231234',
      'One Washington Square, San Jose, CA 95192',
-     '$2a$10$1tWbGoleZtF7kNNkocXjpOGYlcMxtXtNthgAqufoQC4p4TquoFkam', 'Employee'),
+     '$2a$10$MROHWY27yUHhbx1jRu1IXOSr9ilUJgbkEPCWylhHDNQ5kNpNeuLue', 'Employee'),
     ('Johnathan Aye', 'johnathan.aye@sjsu.edu', '11231231234',
      'One Washington Square, San Jose, CA 95192',
-     '$2a$10$1tWbGoleZtF7kNNkocXjpOGYlcMxtXtNthgAqufoQC4p4TquoFkam', 'Employee')
+     '$2a$10$MROHWY27yUHhbx1jRu1IXOSr9ilUJgbkEPCWylhHDNQ5kNpNeuLue', 'Employee')
 ON DUPLICATE KEY UPDATE
     user_name = VALUES(user_name),
     phone = VALUES(phone),

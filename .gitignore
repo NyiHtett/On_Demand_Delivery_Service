@@ -9,6 +9,11 @@ frontend/dist/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+## Playwright ##
+frontend/playwright-report/
+frontend/test-results/
+frontend/test_reports/
+
 ### STS ###
 .apt_generated
 .classpath
@@ -36,3 +41,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Local Codex/project context; do not commit or push.
+LOCAL_PROJECT_CONTEXT.md

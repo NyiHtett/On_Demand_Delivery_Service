@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import OrdersTable from '../components/manager/OrdersTable'
+import OrderStatusTable from '../components/manager/OrderStatusTable'
 
 function ManagerOrdersPage() {
     return (
@@ -11,7 +11,7 @@ function ManagerOrdersPage() {
             <h1 className="mt-2 font-display text-3xl font-black text-ink">Orders Dashboard</h1>
             <p className="mt-1 text-sm text-ink/75">View all customer orders, update statuses</p>
 
-            <OrdersTable />
+            <OrderStatusTable />
         </main>
     );
 }
