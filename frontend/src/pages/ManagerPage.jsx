@@ -3,7 +3,7 @@ import ProductTable from '../components/manager/ProductTable';
 import ProductSearch from '../components/catalog/ProductSearch';
 import { getInventory, updateProduct, createProduct, deleteProduct } from '../services/productService';
 import CreateProductForm from "../components/manager/CreateProductForm";
-import { Link } from 'react-router-dom';
+import OrderStatusTable from '../components/manager/OrderStatusTable';
 import TrackingPanel from '../components/manager/TrackingPanel';
 import { getTracking } from '../services/trackingService';
  
@@ -168,16 +168,15 @@ function ManagerPage() {
     <main className="mx-auto w-full max-w-5xl p-4 sm:p-6">
       <h1 className="font-display text-3xl font-black text-ink">Employee Product Dashboard</h1>
       <p className="mt-1 text-sm text-ink/75">Search products and adjust their stock.</p>
-      <Link to="/manager/orders" className="mt-2 inline-block text-sm font-bold text-brand-green-700 hover:underline">
-        View Orders
-      </Link>
 
       <div className="mt-6 flex gap-2 border-b-2 border-brand-green-100">
         <button type="button" onClick={() => setActiveView('inventory')} className={`px-4 py-3 font-bold ${activeView === 'inventory' ? 'border-b-4 border-brand-green-600 text-brand-green-700' : 'text-ink/60'}`}>Inventory</button>
         <button type="button" onClick={() => setActiveView('tracking')} className={`px-4 py-3 font-bold ${activeView === 'tracking' ? 'border-b-4 border-brand-green-600 text-brand-green-700' : 'text-ink/60'}`}>Track deliveries</button>
+        <button type="button" onClick={() => setActiveView('orders')} className={`px-4 py-3 font-bold ${activeView === 'orders' ? 'border-b-4 border-brand-green-600 text-brand-green-700' : 'text-ink/60'}`}>View Orders</button>
       </div>
 
       {activeView === 'tracking' && <TrackingPanel tracking={tracking} loading={trackingLoading} error={trackingError} onRefresh={loadTracking} />}
+      {activeView === 'orders' && <OrderStatusTable />}
 
       {activeView === 'inventory' && hasChanges && (
         <div className="sticky top-0 z-10 mt-4 flex items-center justify-between rounded-xl border-2 border-brand-orange-500 bg-white p-3">
