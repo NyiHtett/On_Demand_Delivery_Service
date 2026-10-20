@@ -44,6 +44,17 @@ public class OrderService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "can't change status for orders that are shipping or completed"); //will protect in the frontend as well, but this is for safety
         }
         
+        boolean needsRefund = currentStatus.equals("Ordered") && newStatus.equals("Cancelled");
+
         orderDao.updateOrderStatus(orderId, newStatus);
+
+        if (needsRefund) {
+            refundOrder(orderId);
+        }
+    }
+
+    private void refundOrder(long orderId) {
+        //the actual implementation of payments is outside the scope of this project
+        //just wanted to simulate the logic when the status changes from ordered to cancelled.
     }
 }

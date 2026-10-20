@@ -16,12 +16,12 @@ function ProductLine({ product, onDecrease, onIncrease, onWeightChange, onPriceC
     <div className="flex w-full items-center gap-4 rounded-2xl border-2 border-brand-green-100 bg-white p-4 transition-colors hover:border-brand-green-500">
       <div className="grid size-16 shrink-0 place-items-center rounded-xl border border-brand-green-100 bg-paper text-4xl">
         {
-          product.imageUrl && !imageFailed ? (
+         product.imageUrl && !imageFailed ? (
             <img src={product.imageUrl} alt={product.name} className="size-full object-cover" onError={(e) => setImageFailed(true)}/>
           ) : (
             <span role="img">🛒</span>
           )
-        }
+        } 
       </div>
  
       <div className="min-w-0 flex-1">

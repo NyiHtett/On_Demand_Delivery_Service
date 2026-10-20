@@ -9,7 +9,7 @@ import SignUpPage from './pages/SignUpPage';
 import AccountPage from './pages/AccountPage';
 import ManagerPage from './pages/ManagerPage';
 import NotFoundPage from './pages/NotFoundPage';
-import OrdersTable from './components/manager/OrdersTable';
+import ManagerOrdersPage from './pages/ManagerOrdersPage';
 
 //testing
 import ShoppingOffersPage from './pages/ShoppingOffersPage';
@@ -26,7 +26,7 @@ function App() {
         <Route path="/sign-up" element={<SignUpPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/manager" element={<ManagerPage />} />
-        <Route path="/manager/orders" element={<OrdersTable />} />
+        <Route path="/manager/orders" element={<ManagerOrdersPage />} />
         <Route path="/shop-offers" element={<ShoppingOffersPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
