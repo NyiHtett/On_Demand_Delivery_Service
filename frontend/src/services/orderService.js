@@ -1,10 +1,17 @@
+import {get, put} from './apiClient';
+
 function getCart() {}
 function addCartItem() {}
 function updateCartItemQuantity() {}
 function removeCartItem() {}
 function cancelCart() {}
 function checkoutCart() {}
-function getOrders() {}
+function getOrders() {
+  return get('/orders');
+}
+function updateOrderStatus(orderId, orderStatus) {
+  return put(`/orders/${orderId}/status`, { orderStatus })
+}
 function getOrder() {}
 function cancelOrder() {}
 function getAccount() {}
@@ -24,6 +31,7 @@ export {
   getCart,
   getOrder,
   getOrders,
+  updateOrderStatus,
   getPaymentMethods,
   removeCartItem,
   updateAccount,

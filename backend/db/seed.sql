@@ -90,6 +90,15 @@ ON DUPLICATE KEY UPDATE
     image_url = VALUES(image_url),
     quantity = VALUES(quantity);
 
+INSERT INTO shopping_carts(cart_id, customer_id, table_status) VALUES (1,1, "Active");
+
+INSERT INTO orders (order_id, customer_id, cart_id, card_number, order_status, delivery_address, subtotal, delivery_fee, total_weight)
+VALUES (1, 1, 1, '1234567891011121', 'Active', "One washington Square San Jose, CA 95192", 22.03, 0, 13.601);
+
+INSERT INTO order_items (order_id, product_id, product_name, unit_weight, unit_price, quantity)
+VALUES (1,1, 'Apple', 0.400, 1.00, 5),
+    (1,3, 'Toast', 1.500, 5.45, 2),
+    (1,7, 'Milk', 8.601, 6.13, 1);
 
 /*
 sessions, shopping_carts, cart_items, orders, order_items,

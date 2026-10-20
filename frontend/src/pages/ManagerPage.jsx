@@ -3,6 +3,7 @@ import ProductTable from '../components/manager/ProductTable';
 import ProductSearch from '../components/catalog/ProductSearch';
 import { getInventory, updateProduct, createProduct, deleteProduct } from '../services/productService';
 import CreateProductForm from "../components/manager/CreateProductForm";
+import { Link } from 'react-router-dom';
 import TrackingPanel from '../components/manager/TrackingPanel';
 import { getTracking } from '../services/trackingService';
  
@@ -167,6 +168,9 @@ function ManagerPage() {
     <main className="mx-auto w-full max-w-5xl p-4 sm:p-6">
       <h1 className="font-display text-3xl font-black text-ink">Employee Product Dashboard</h1>
       <p className="mt-1 text-sm text-ink/75">Search products and adjust their stock.</p>
+      <Link to="/manager/orders" className="mt-2 inline-block text-sm font-bold text-brand-green-700 hover:underline">
+        View Orders
+      </Link>
 
       <div className="mt-6 flex gap-2 border-b-2 border-brand-green-100">
         <button type="button" onClick={() => setActiveView('inventory')} className={`px-4 py-3 font-bold ${activeView === 'inventory' ? 'border-b-4 border-brand-green-600 text-brand-green-700' : 'text-ink/60'}`}>Inventory</button>
