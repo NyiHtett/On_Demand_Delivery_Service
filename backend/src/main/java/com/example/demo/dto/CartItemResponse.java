@@ -1,5 +1,13 @@
 package com.example.demo.dto;
 
-public class CartItemResponse {
-    // A cart item
-}
+import java.math.BigDecimal;
+
+public record CartItemResponse(
+        Long cartItemID,
+        Long productID,
+        String name,
+        BigDecimal unitPrice,
+        BigDecimal unitWeight,
+        int quantity,
+        String imageUrl
+) {}
