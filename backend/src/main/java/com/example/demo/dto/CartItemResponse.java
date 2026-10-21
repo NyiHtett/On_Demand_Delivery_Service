@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 public record CartItemResponse(
         Long cartItemID,
         Long productID,
-        String name,
+        String productName,
         BigDecimal unitPrice,
         BigDecimal unitWeight,
         int quantity,

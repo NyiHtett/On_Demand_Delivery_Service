@@ -5,11 +5,11 @@ import java.util.List;
 // Entire cart line
 // List of all items in an object + applied business logic
 public record CartResponse (
-        Long CartId,
+        Long cartId,
         List<CartItemResponse> items,
         BigDecimal total,
         BigDecimal subtotal,
-        BigDecimal DeliveryFee,
+        BigDecimal deliveryFee,
         BigDecimal totalWeight
 ) {}
 

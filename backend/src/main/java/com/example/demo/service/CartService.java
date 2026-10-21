@@ -39,8 +39,8 @@ public class CartService {
 
         // Subtotal, sum of cart item prices
         // totalWeight, sum of cart item weight
-        // DeliveryFee, if greater than 20 lbs, add fee (+10)
-        // Total, Subtotal+DeliveryFee
+        // deliveryFee, if greater than 20 lbs, add fee (+10)
+        // Total, Subtotal+deliveryFee
 
         BigDecimal subTotal = new BigDecimal(0);
         BigDecimal unitWeight = new BigDecimal(0);
