@@ -16,14 +16,31 @@ const products = [
 
 function ShoppingPage() {
   const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('default');
   const [quantities, setQuantities] = useState({});
   const [cartCount, setCartCount] = useState(0);
 
   const visibleProducts = useMemo(() => {
     const query = search.trim().toLowerCase();
-    // cheap aah filter that needs to be replaced
-    return query ? products.filter((product) => product.name.includes(query)) : products;
-  }, [search]);
+    const filteredProducts = query
+      ? products.filter((product) => product.name.includes(query))
+      : products;
+
+    return [...filteredProducts].sort((firstProduct, secondProduct) => {
+      switch (sortBy) {
+        case 'name-asc':
+          return firstProduct.name.localeCompare(secondProduct.name);
+        case 'name-desc':
+          return secondProduct.name.localeCompare(firstProduct.name);
+        case 'price-asc':
+          return parseFloat(firstProduct.price.slice(1)) - parseFloat(secondProduct.price.slice(1));
+        case 'price-desc':
+          return parseFloat(secondProduct.price.slice(1)) - parseFloat(firstProduct.price.slice(1));
+        default:
+          return 0;
+      }
+    });
+  }, [search, sortBy]);
 
   // both of the functions below are ui/temp data only
   // the temp data bit needs to be replaced by a helper function that connects it to orderService.js
@@ -59,8 +76,26 @@ function ShoppingPage() {
             <p className="mt-1 text-lg text-ink/75">OFS Market</p>
           </div>
 
-          <div className="my-7">
-            <ProductSearch value={search} onChange={setSearch} onClear={() => setSearch('')} />
+          <div className="my-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex-1">
+              <ProductSearch value={search} onChange={setSearch} onClear={() => setSearch('')} />
+            </div>
+
+            <label className="flex min-h-11 items-center gap-2 text-sm font-semibold text-ink/75">
+              <span className="whitespace-nowrap">Sort by</span>
+              <select
+                value={sortBy}
+                onChange={(event) => setSortBy(event.target.value)}
+                className="min-h-11 rounded-lg border-2 border-brand-green-200 bg-white px-3 font-medium text-ink outline-none focus:border-brand-green-600 focus:ring-2 focus:ring-brand-green-200"
+                aria-label="Sort products"
+              >
+                <option value="default">Recommended</option>
+                <option value="name-asc">Name: A–Z</option>
+                <option value="name-desc">Name: Z–A</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+              </select>
+            </label>
           </div>
 
           {visibleProducts.length > 0 ? (
