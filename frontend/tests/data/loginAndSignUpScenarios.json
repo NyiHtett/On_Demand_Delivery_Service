@@ -33,5 +33,19 @@
     "email": "test.user@gmail.com",
     "password": "aaAA88**",
     "submit": false
+  },
+  {
+    "role": "Too Short Name User",
+    "name": "a",
+    "email": "test.user@gmail.com",
+    "password": "aaAA88**",
+    "submit": false
+  },
+  {
+    "role": "Too Long Name User",
+    "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "email": "test.user@gmail.com",
+    "password": "aaAA88**",
+    "submit": false
   }
 ]

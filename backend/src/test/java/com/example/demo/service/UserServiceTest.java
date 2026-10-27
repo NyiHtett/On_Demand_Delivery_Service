@@ -63,9 +63,38 @@ public class UserServiceTest {
     //never called insert in DAO, rejected before
     verify(userDao, never()).signUpUser(anyString(), anyString(), anyString());
   }
+  
   @Test 
   public void signUpRejectsNullName() {
     String name = null;
+    String email = "test@gmail.com";
+    String password = "TestP@ssw0rd";
+
+    when(userDao.getUserByEmail(email)).thenReturn(null);
+    SignUpRequest request = new SignUpRequest(
+      name, email, password);
+    assertThrows(RuntimeException.class, () -> userService.signUpUser(request));
+    //never called insert in DAO, rejected before
+    verify(userDao, never()).signUpUser(anyString(), anyString(), anyString());
+  }
+
+  @Test 
+  public void signUpRejectsTooShortName() {
+    String name = "a";
+    String email = "test@gmail.com";
+    String password = "TestP@ssw0rd";
+
+    when(userDao.getUserByEmail(email)).thenReturn(null);
+    SignUpRequest request = new SignUpRequest(
+      name, email, password);
+    assertThrows(RuntimeException.class, () -> userService.signUpUser(request));
+    //never called insert in DAO, rejected before
+    verify(userDao, never()).signUpUser(anyString(), anyString(), anyString());
+  }
+
+  @Test 
+  public void signUpRejectsTooLongName() {
+    String name = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     String email = "test@gmail.com";
     String password = "TestP@ssw0rd";
 
