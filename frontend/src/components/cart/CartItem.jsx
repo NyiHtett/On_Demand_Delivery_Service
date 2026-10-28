@@ -1,12 +1,29 @@
+import { useEffect, useState } from 'react';
+
 function formatMoney(amount) {
   return `$${amount.toFixed(2)}`;
 }
 
 function CartItem({ item, onDecrease, onIncrease, onRemove }) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [item.imageUrl]);
+
   return (
     <li className="grid grid-cols-[5rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-brand-green-100 py-5 last:border-b-0 sm:grid-cols-[6rem_minmax(9rem,1fr)_12rem_7rem_3rem]">
       <div className="grid size-20 place-items-center rounded-xl border border-brand-green-100 bg-paper text-5xl sm:size-24 sm:text-6xl">
-        <span role="img" aria-label={item.name}>{item.icon}</span>
+        {item.imageUrl && !imageFailed ? (
+          <img
+            src={item.imageUrl}
+            alt={item.name}
+            className="size-full rounded-xl object-contain p-2"
+            onError={() => setImageFailed(true)}
+          />
+        ) : (
+          <span role="img" aria-label={item.name}>{item.icon}</span>
+        )}
       </div>
 
       <div>

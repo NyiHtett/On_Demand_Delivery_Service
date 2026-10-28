@@ -100,6 +100,17 @@ VALUES (1,1, 'Apple', 0.400, 1.00, 5),
     (1,3, 'Toast', 1.500, 5.45, 2),
     (1,7, 'Milk', 8.601, 6.13, 1);
 
+-- Manual completed order for Anthony Kieu while checkout/Stripe is not available.
+INSERT INTO shopping_carts(cart_id, customer_id, table_status)
+VALUES (2, 1, 'Completed');
+
+INSERT INTO orders (order_id, customer_id, cart_id, card_number, order_status, delivery_address, subtotal, delivery_fee, total_weight)
+VALUES (2, 1, 2, '1234567891011121', 'Completed', 'One Washington Square, San Jose, CA 95192', 7.45, 0, 2.300);
+
+INSERT INTO order_items (order_id, product_id, product_name, unit_weight, unit_price, quantity)
+VALUES (2, 1, 'Apple', 0.400, 1.00, 2),
+    (2, 3, 'Toast', 1.500, 5.45, 1);
+
 /*
 sessions, shopping_carts, cart_items, orders, order_items,
 delivery_tasks, delivery_task_orders, and inventory_updates

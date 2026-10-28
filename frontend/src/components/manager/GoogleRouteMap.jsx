@@ -48,6 +48,13 @@ function interpolatePath(path, distances, progress) {
   ];
 }
 
+function getSegmentIndex(distances, progress) {
+  const targetDistance = progress * distances[distances.length - 1];
+  let index = 1;
+  while (index < distances.length - 1 && distances[index] < targetDistance) index += 1;
+  return index;
+}
+
 const deliveryIcon = L.divIcon({
   className: '',
   html: '<span style="display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:#397522;border:3px solid white;box-shadow:0 2px 8px #555;font-size:22px">🚚</span>',
@@ -82,34 +89,34 @@ function GoogleRouteMap({ encodedPolyline, stopLocations = [] }) {
     const bounds = L.latLngBounds(path);
     map.fitBounds(bounds, { padding: [24, 24] });
 
-    const animatedLine = L.polyline([], { color: '#8fbe82', weight: 3, opacity: 0.9 }).addTo(map);
+    L.polyline(path, { color: '#397522', weight: 5, opacity: 0.2, dashArray: '8 10' }).addTo(map);
+    const animatedLine = L.polyline([], { color: '#8fbe82', weight: 5, opacity: 1 }).addTo(map);
     const deliveryMarker = L.marker(path[0], { icon: deliveryIcon, zIndexOffset: 1000 }).addTo(map);
     const distances = getPathDistances(path);
-    let pointIndex = 0;
-    const animationDuration = 14000;
+    const animationDuration = 18000;
     const animationStart = performance.now();
     let animationFrame;
 
     const animateDelivery = (timestamp) => {
       const progress = ((timestamp - animationStart) % animationDuration) / animationDuration;
-      deliveryMarker.setLatLng(interpolatePath(path, distances, progress));
+      const currentPoint = interpolatePath(path, distances, progress);
+      const segmentIndex = getSegmentIndex(distances, progress);
+      deliveryMarker.setLatLng(currentPoint);
+      animatedLine.setLatLngs([...path.slice(0, segmentIndex), currentPoint]);
       animationFrame = requestAnimationFrame(animateDelivery);
     };
     animationFrame = requestAnimationFrame(animateDelivery);
 
-    const timer = window.setInterval(() => {
-      animatedLine.addLatLng(path[pointIndex]);
-      pointIndex += 1;
-      if (pointIndex >= path.length) window.clearInterval(timer);
-    }, 18);
-
-    L.circleMarker(path[0], { radius: 8, color: '#e8890c', fillColor: '#f5a623', fillOpacity: 1 }).addTo(map).bindTooltip('Pickup');
+    L.circleMarker(path[0], { radius: 8, color: '#e8890c', fillColor: '#f5a623', fillOpacity: 1 })
+      .addTo(map)
+      .bindTooltip('Pickup', { permanent: true, direction: 'top', offset: [0, -8] });
     stopLocations.forEach((stop, index) => {
-      L.marker([stop.latitude, stop.longitude], { icon: stopIcon(index + 1) }).addTo(map).bindTooltip(`Stop ${index + 1}`);
+      L.marker([stop.latitude, stop.longitude], { icon: stopIcon(index + 1) })
+        .addTo(map)
+        .bindTooltip(`Delivery stop ${index + 1}`, { direction: 'top', offset: [0, -12] });
     });
 
     return () => {
-      window.clearInterval(timer);
       window.cancelAnimationFrame(animationFrame);
       map.remove();
     };
@@ -117,7 +124,14 @@ function GoogleRouteMap({ encodedPolyline, stopLocations = [] }) {
 
   if (error) return <p className="mt-4 rounded-xl border border-brand-orange-100 bg-brand-orange-100/50 p-4 text-sm text-ink/70">{error}</p>;
   if (!encodedPolyline) return null;
-  return <div ref={mapElement} className="mt-5 h-80 w-full overflow-hidden rounded-xl border-2 border-brand-green-100" aria-label="Animated OpenStreetMap route map" />;
+  return (
+    <div className="relative mt-5">
+      <div ref={mapElement} className="h-80 w-full overflow-hidden rounded-xl border-2 border-brand-green-100" aria-label="Animated OpenStreetMap route map" />
+      <span className="absolute right-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-brand-green-700 shadow-sm">
+        live route simulation
+      </span>
+    </div>
+  );
 }
 
 export default GoogleRouteMap;

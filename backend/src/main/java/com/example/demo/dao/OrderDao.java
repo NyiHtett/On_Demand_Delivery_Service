@@ -41,6 +41,15 @@ public class OrderDao {
         );
     }
 
+    public List<OrderResponse> getOrdersForCustomer(long customerId) {
+        return jdbcTemplate.query(
+            "SELECT order_id, customer_id, cart_id, card_number, order_status, delivery_address, subtotal, delivery_fee, total_weight "
+                + "FROM orders WHERE customer_id = ? ORDER BY created_at DESC",
+            (resultSet, rowNumber) -> mapOrder(resultSet),
+            customerId
+        );
+    }
+
     private OrderResponse mapOrder(java.sql.ResultSet resultSet) throws java.sql.SQLException {
         long orderId = resultSet.getLong("order_id");
 

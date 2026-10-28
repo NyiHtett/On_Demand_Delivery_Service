@@ -19,7 +19,7 @@ public class TrackingService {
         this.googleRoutesService = googleRoutesService;
     }
 
-    public TrackingResponse getTracking() {
+    public TrackingResponse getTracking(String mapApiKey) {
         String pickupAddress = trackingDao.getPickupAddress();
         List<com.example.demo.dto.TrackingOrderResponse> orders = trackingDao.getActiveOrders();
         Long distanceMeters = null;
@@ -30,13 +30,15 @@ public class TrackingService {
 
         if (pickupAddress != null && !orders.isEmpty()) {
             try {
-                GoogleRouteResponse route = googleRoutesService.calculateRoute(pickupAddress, orders);
+                GoogleRouteResponse route = googleRoutesService.calculateRoute(mapApiKey, pickupAddress, orders);
                 if (route != null) {
                     distanceMeters = route.distanceMeters();
                     duration = route.duration();
                     encodedPolyline = route.encodedPolyline();
                     stopLocations = route.stopLocations();
                     orders = reorderOrders(orders, route.optimizedIntermediateWaypointIndex());
+                } else {
+                    routeError = "No Google Maps API key was provided. Enter a valid Routes API key and try again.";
                 }
             } catch (IllegalStateException exception) {
                 routeError = exception.getMessage();

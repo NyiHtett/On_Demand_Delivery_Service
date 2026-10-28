@@ -33,8 +33,12 @@ public class GoogleRoutesService {
         this.httpClient = HttpClient.newHttpClient();
     }
 
-    public GoogleRouteResponse calculateRoute(String pickupAddress, List<TrackingOrderResponse> orders) {
-        if (apiKey.isBlank() || pickupAddress == null || pickupAddress.isBlank() || orders.isEmpty()) {
+    public GoogleRouteResponse calculateRoute(String requestApiKey, String pickupAddress, List<TrackingOrderResponse> orders) {
+        String routeApiKey = requestApiKey == null || requestApiKey.isBlank()
+            ? apiKey
+            : requestApiKey.trim();
+
+        if (routeApiKey.isBlank() || pickupAddress == null || pickupAddress.isBlank() || orders.isEmpty()) {
             return null;
         }
 
@@ -58,7 +62,7 @@ public class GoogleRoutesService {
 
             HttpRequest request = HttpRequest.newBuilder(URI.create(ROUTES_URL))
                 .header("Content-Type", "application/json")
-                .header("X-Goog-Api-Key", apiKey)
+                .header("X-Goog-Api-Key", routeApiKey)
                 .header("X-Goog-FieldMask", "routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline,routes.optimizedIntermediateWaypointIndex,routes.legs.endLocation")
                 .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(requestBody)))
                 .build();

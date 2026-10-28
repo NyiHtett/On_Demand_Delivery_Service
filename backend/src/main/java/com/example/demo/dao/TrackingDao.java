@@ -8,6 +8,7 @@ import java.util.List;
 
 @Repository
 public class TrackingDao {
+    private static final String DEFAULT_PICKUP_ADDRESS = "OFS Market, San Jose, CA";
     private final JdbcTemplate jdbcTemplate;
 
     public TrackingDao(JdbcTemplate jdbcTemplate) {
@@ -47,7 +48,9 @@ public class TrackingDao {
             "SELECT pickup_address FROM delivery_tasks WHERE delivery_task_status IN ('Not Started', 'En Route') ORDER BY assigned_at DESC LIMIT 1",
             (rs, rowNum) -> rs.getString("pickup_address")
         );
-        return addresses.isEmpty() ? null : addresses.get(0);
+        // Active orders can exist before a delivery task is assigned. Start those
+        // routes from the store so they can still be tracked in the manager view.
+        return addresses.isEmpty() ? DEFAULT_PICKUP_ADDRESS : addresses.get(0);
     }
 
     public String getRouteStatus() {
