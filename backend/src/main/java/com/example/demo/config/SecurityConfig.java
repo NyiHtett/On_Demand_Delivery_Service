@@ -13,6 +13,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import jakarta.servlet.DispatcherType;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 
 @Configuration
 @EnableWebSecurity
@@ -22,6 +23,13 @@ public class SecurityConfig {
 
     public SecurityConfig(ApiTokenAuthenticationFilter apiTokenAuthenticationFilter) {
         this.apiTokenAuthenticationFilter = apiTokenAuthenticationFilter;
+    }
+
+    @Bean
+    FilterRegistrationBean<ApiTokenAuthenticationFilter> apiTokenFilterRegistration(ApiTokenAuthenticationFilter filter) {
+        FilterRegistrationBean<ApiTokenAuthenticationFilter> reg = new FilterRegistrationBean<>(filter);
+        reg.setEnabled(false);
+        return reg;
     }
 
     @Bean

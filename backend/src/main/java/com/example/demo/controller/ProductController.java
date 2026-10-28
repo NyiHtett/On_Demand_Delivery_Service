@@ -13,6 +13,7 @@ import com.example.demo.dto.CreateProductRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 
 import java.util.List;
@@ -36,16 +37,19 @@ public class ProductController {
         return productService.getProduct(productId);
     }
 
+    @PreAuthorize("hasRole('EMPLOYEE')")
     @PutMapping("/{productId}")
     public ProductResponse updateProduct(@PathVariable long productId, @RequestBody UpdateProductRequest req) {
         return productService.updateProduct(productId, req);
     }
 
+    @PreAuthorize("hasRole('EMPLOYEE')")
     @PostMapping
     public ProductResponse createProduct(@RequestBody CreateProductRequest req) {
         return productService.createProduct(req);
     }
 
+    @PreAuthorize("hasRole('EMPLOYEE')")
     @DeleteMapping("/{productId}")
     public ResponseEntity<Void> deleteProduct(@PathVariable long productId) {
         productService.deleteProduct(productId);
