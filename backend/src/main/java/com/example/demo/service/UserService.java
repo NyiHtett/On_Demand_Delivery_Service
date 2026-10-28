@@ -19,6 +19,8 @@ import com.example.demo.dto.AccountRequest;
 
 @Service
 public class UserService {
+    private static final String NAME_PATTERN = "^[a-zA-Z\s'-]{2,40}$";
+    private static final String EMAIL_PATTERN = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
     private static final String PASSWORD_PATTERN =
         "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d]).{8,}$";
     private final UserDao userDao;
@@ -75,13 +77,13 @@ public class UserService {
             );
         }
 
-        if (request.name() == null || request.name().isBlank()) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Name is required.");
+        if (request.name() == null || request.name().isBlank() || !request.name().matches(NAME_PATTERN)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Name is required. 2-40 chars required.");
         }
 
         if (request.email() == null ||
             !request.email().matches(
-                "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+                EMAIL_PATTERN
             )) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Email is not valid.");
         }

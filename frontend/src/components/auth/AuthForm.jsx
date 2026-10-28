@@ -3,6 +3,7 @@ import Header from '../layout/Header';
 import { useState } from 'react';
 import { loginUser, signUpUser } from '../../services/customerService';
 
+const NAME_PATTERN = /^[a-zA-Z\s'-]{2,40}$/;
 const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -14,6 +15,7 @@ function AuthForm({pageTitle}) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
+  const isValidName = NAME_PATTERN.test(name);
   const isValidEmail = EMAIL_PATTERN.test(email);
   const isValidSignupPassword = PASSWORD_PATTERN.test(password);
   // Condition evaluates directly on every render
@@ -25,6 +27,7 @@ function AuthForm({pageTitle}) {
       ||
     (pageTitle === "Sign Up" &&
      name !== '' &&
+     isValidName &&
      email !== '' &&
      isValidEmail &&
      password !== '' &&
