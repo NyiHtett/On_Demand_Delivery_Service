@@ -25,6 +25,10 @@ public class OrderService {
         return orderDao.getAllOrders();
     }
 
+    public List<OrderResponse> getOrdersForCustomer(long customerId) {
+        return orderDao.getOrdersForCustomer(customerId);
+    }
+
     public void updateOrderStatus(long orderId, UpdateOrderStatusRequest req) {
         if (req == null || req.orderStatus() == null || req.orderStatus().isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "order status can't be empty for update");

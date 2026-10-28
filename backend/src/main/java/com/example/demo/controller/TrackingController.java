@@ -4,6 +4,7 @@ import com.example.demo.dto.TrackingResponse;
 import com.example.demo.service.TrackingService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -16,7 +17,9 @@ public class TrackingController {
     }
 
     @GetMapping("/tracking")
-    public TrackingResponse getTracking() {
-        return trackingService.getTracking();
+    public TrackingResponse getTracking(
+        @RequestHeader(value = "X-Google-Maps-Api-Key", required = false) String mapApiKey
+    ) {
+        return trackingService.getTracking(mapApiKey);
     }
 }

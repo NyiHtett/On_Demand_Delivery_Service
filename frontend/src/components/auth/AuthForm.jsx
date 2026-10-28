@@ -56,8 +56,8 @@ function AuthForm({pageTitle}) {
         <div className="mx-auto max-w-7xl">
           <Header />
 
-          <main className="grid gap-8 pt-7 lg:grid-cols-[minmax(0,1fr)_17rem] lg:gap-10">
-            <section className="min-w-0" aria-labelledby="home-heading">
+          <main className="flex justify-center pt-7">
+            <section className="w-full max-w-2xl" aria-labelledby="home-heading">
               <div className="mb-8 text-center">
                 <p className="mb-1 font-display text-sm font-bold uppercase tracking-[0.18em] text-brand-orange-500">
                   OFS delivery

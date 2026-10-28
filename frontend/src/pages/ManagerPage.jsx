@@ -6,6 +6,7 @@ import CreateProductForm from "../components/manager/CreateProductForm";
 import OrderStatusTable from '../components/manager/OrderStatusTable';
 import TrackingPanel from '../components/manager/TrackingPanel';
 import { getTracking } from '../services/trackingService';
+import Header from '../components/layout/Header';
  
 
 function toDisplayProduct(product) {
@@ -33,6 +34,7 @@ function ManagerPage() {
   const [tracking, setTracking] = useState(null);
   const [trackingLoading, setTrackingLoading] = useState(false);
   const [trackingError, setTrackingError] = useState('');
+  const [mapApiKey, setMapApiKey] = useState(() => localStorage.getItem('google_maps_api_key') || '');
 
   useEffect(() => {
     getInventory().then((data) => {
@@ -47,7 +49,7 @@ function ManagerPage() {
     setTrackingLoading(true);
     setTrackingError('');
     try {
-      setTracking(await getTracking());
+      setTracking(await getTracking(mapApiKey));
     } catch (error) {
       setTrackingError(error.message || 'Unable to load tracking data.');
     } finally {
@@ -58,6 +60,11 @@ function ManagerPage() {
   useEffect(() => {
     if (activeView === 'tracking') loadTracking();
   }, [activeView]);
+
+  function changeMapApiKey(value) {
+    setMapApiKey(value);
+    localStorage.setItem('google_maps_api_key', value);
+  }
  
   {/* What this basically does is dynamically update the visible productions object*/}
   const visibleProducts = useMemo(() => {
@@ -165,7 +172,11 @@ function ManagerPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-5xl p-4 sm:p-6">
+    <div className="min-h-screen bg-paper px-5 pb-8 sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-7xl">
+        <Header />
+      </div>
+      <main className="mx-auto w-full max-w-5xl p-4 sm:p-6">
       <h1 className="font-display text-3xl font-black text-ink">Employee Product Dashboard</h1>
       <p className="mt-1 text-sm text-ink/75">Search products and adjust their stock.</p>
 
@@ -175,9 +186,17 @@ function ManagerPage() {
         <button type="button" onClick={() => setActiveView('orders')} className={`px-4 py-3 font-bold ${activeView === 'orders' ? 'border-b-4 border-brand-green-600 text-brand-green-700' : 'text-ink/60'}`}>View Orders</button>
       </div>
 
-      {activeView === 'tracking' && <TrackingPanel tracking={tracking} loading={trackingLoading} error={trackingError} onRefresh={loadTracking} />}
+      {activeView === 'tracking' && (
+        <TrackingPanel
+          tracking={tracking}
+          loading={trackingLoading}
+          error={trackingError}
+          mapApiKey={mapApiKey}
+          onMapApiKeyChange={changeMapApiKey}
+          onRefresh={loadTracking}
+        />
+      )}
       {activeView === 'orders' && <OrderStatusTable />}
-
       {activeView === 'inventory' && hasChanges && (
         <div className="sticky top-0 z-10 mt-4 flex items-center justify-between rounded-xl border-2 border-brand-orange-500 bg-white p-3">
           <span className="font-bold text-ink">{changedProducts.length} unsaved product(s)</span>
@@ -219,7 +238,8 @@ function ManagerPage() {
           </p>
         )}
       </div>}
-    </main>
+      </main>
+    </div>
   );
 }
  

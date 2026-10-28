@@ -1,9 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import CartItem from '../components/cart/CartItem';
 import CartSidebar from '../components/cart/CartSidebar';
 import EmptyCart from '../components/cart/EmptyCart';
 import Header from '../components/layout/Header';
+import { API_TOKEN_KEY } from '../services/apiClient';
+import { getInventory } from '../services/customerService';
+import { getCart } from '../services/orderService';
 
 const initialCartItems = [
   { id: 1, name: 'apples', price: 2.49, unit: '1 lb', weight: 0.5, quantity: 2, icon: '🍎' },
@@ -14,8 +17,70 @@ const initialCartItems = [
 
 const deliveryFee = 2.99;
 
+function getProductId(item) {
+  return item.productID ?? item.productId ?? item.product_id ?? item.id;
+}
+
+function getImageUrl(item) {
+  return item.imageUrl ?? item.image_url ?? '';
+}
+
+function toCartItem(item, productsById, productsByName) {
+  const weight = Number(item.unitWeight ?? item.unit_weight ?? item.weight ?? 0);
+  const productId = getProductId(item);
+  const name = (item.productName ?? item.product_name ?? item.name ?? 'product').toLowerCase();
+  const backendProduct = productsById.get(String(productId)) || productsByName.get(name);
+
+  return {
+    id: productId ?? item.cartItemID ?? item.id,
+    name,
+    price: Number(item.unitPrice ?? item.unit_price ?? item.price ?? 0),
+    unit: weight ? `${weight} lb` : '',
+    weight,
+    quantity: Number(item.quantity ?? 0),
+    imageUrl: getImageUrl(item) || (backendProduct ? getImageUrl(backendProduct) : ''),
+    icon: item.icon ?? '🛒',
+  };
+}
+
 function CartPage() {
   const [cartItems, setCartItems] = useState(initialCartItems);
+
+  useEffect(() => {
+    if (!localStorage.getItem(API_TOKEN_KEY)) return undefined;
+
+    let isCurrent = true;
+
+    Promise.all([
+      getCart(),
+      getInventory().catch(() => []),
+    ])
+      .then(([cart, inventoryResponse]) => {
+        if (!isCurrent) return;
+        const items = Array.isArray(cart) ? cart : cart?.items || [];
+        const inventory = Array.isArray(inventoryResponse)
+          ? inventoryResponse
+          : inventoryResponse?.products || inventoryResponse?.items || [];
+        const productsById = new Map(
+          inventory.map((product) => [String(getProductId(product)), product]),
+        );
+        const productsByName = new Map(
+          inventory.map((product) => [
+            (product.name ?? product.productName ?? product.product_name ?? '').toLowerCase(),
+            product,
+          ]),
+        );
+
+        setCartItems(items.map((item) => toCartItem(item, productsById, productsByName)));
+      })
+      .catch(() => {
+        // Keep the local preview if the cart cannot be loaded.
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   const summary = useMemo(() => {
     return cartItems.reduce(
