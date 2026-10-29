@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.TrackingResponse;
 import com.example.demo.service.TrackingService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("api/manager")
+@PreAuthorize("hasRole('EMPLOYEE')")
 public class TrackingController {
     private final TrackingService trackingService;
 

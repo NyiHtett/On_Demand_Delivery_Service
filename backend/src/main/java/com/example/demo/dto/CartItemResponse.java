@@ -9,5 +9,7 @@ public record CartItemResponse(
         BigDecimal unitPrice,
         BigDecimal unitWeight,
         int quantity,
-        String imageUrl
+        String imageUrl,
+        // Current stock, so the cart page can cap the + button (null if the product was deleted).
+        Integer stock
 ) {}

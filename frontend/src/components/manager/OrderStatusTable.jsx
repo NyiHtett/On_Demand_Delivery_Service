@@ -1,19 +1,20 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useState } from 'react';
+import usePolling from '../../hooks/usePolling';
 import { getOrders, updateOrderStatus } from '../../services/orderService';
 
-const STATUS_LIST = ['Active', 'Ordered', 'Cancelled', 'Shipping', 'Completed'];
-const STATUS_LOCK = ['Shipping', 'Completed'];
+// Pending = awaiting payment, Ordered = paid and waiting for a robot. The robot moves orders to
+// Shipping and Completed on its own; employees normally only need to cancel.
+const STATUS_LIST = ['Pending', 'Ordered', 'Cancelled', 'Shipping', 'Completed'];
+const STATUS_LOCK = ['Shipping', 'Completed', 'Cancelled'];
 
 function OrderStatusTable() {
   const [orders, setOrders] = useState([]);
   const [expandedIds, setExpandedIds] = useState([]);
 
-  useEffect(() => {
-    getOrders().then((data) => {
-      console.log("orders from backend: ", data);
-      setOrders(data);
-    }).catch((e) => console.error("issue loading errors: ", e));
-  }, []);
+  // Live updates: new orders and robot status changes appear without a refresh.
+  usePolling(() => {
+    getOrders().then(setOrders).catch((e) => console.error("issue loading orders: ", e));
+  }, 4000);
 
   function toggleExpanded(orderId) {
     setExpandedIds((current) => 

@@ -157,6 +157,29 @@ export function killTree(child) {
   else child.kill('SIGTERM');
 }
 
+function canConnect(port, host) {
+  return new Promise((resolve) => {
+    const socket = net.connect({ port, host });
+    socket.setTimeout(500);
+    socket.once('connect', () => { socket.destroy(); resolve(true); });
+    socket.once('timeout', () => { socket.destroy(); resolve(false); });
+    socket.once('error', () => resolve(false));
+  });
+}
+
+/** Stops early with a clear message if something (often an old dev run) still holds the app ports. */
+export async function ensurePortsFree(ports) {
+  const busy = [];
+  for (const port of ports) {
+    if ((await canConnect(port, '127.0.0.1')) || (await canConnect(port, '::1'))) busy.push(port);
+  }
+  if (busy.length === 0) return;
+  const hint = IS_WINDOWS
+    ? `Find it with:  netstat -ano | findstr ":${busy[0]}"   then stop it with:  taskkill /PID <pid> /F`
+    : `Find it with:  lsof -i :${busy[0]}   then stop it with:  kill <pid>`;
+  fail(`port ${busy.join(' and ')} is already in use (is another dev server still running?)\n        ${hint}`);
+}
+
 export async function waitForUrl(url, timeoutMs) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {

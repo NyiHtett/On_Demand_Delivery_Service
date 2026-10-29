@@ -212,7 +212,7 @@ function AccountPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-paper px-5 pb-10 sm:px-8 lg:px-12">
-        <Header showCart cartCount={0} />
+        <Header showCart />
         <p className="py-16 text-center font-display text-lg font-bold text-brand-green-700" role="status">
           loading account information...
         </p>
@@ -223,7 +223,7 @@ function AccountPage() {
   if (!profile) {
     return (
       <div className="min-h-screen bg-paper px-5 pb-10 sm:px-8 lg:px-12">
-        <Header showCart cartCount={0} />
+        <Header showCart />
         <p className="py-16 text-center font-semibold text-red-700" role="alert">
           {profileError || 'Unable to load account information.'}
         </p>
@@ -234,7 +234,7 @@ function AccountPage() {
   return (
     <div className="min-h-screen bg-paper px-5 pb-10 sm:px-8 lg:px-12">
       <div className="mx-auto max-w-4xl">
-        <Header showCart cartCount={0} />
+        <Header showCart />
 
         <main className="pt-8 sm:pt-10">
           <div className="mb-8 text-center">

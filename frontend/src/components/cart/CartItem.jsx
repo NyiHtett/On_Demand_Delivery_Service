@@ -48,7 +48,8 @@ function CartItem({ item, onDecrease, onIncrease, onRemove }) {
         <button
           type="button"
           onClick={onIncrease}
-          className="grid size-10 place-items-center rounded-lg border-2 border-brand-green-500 font-display text-xl font-black text-brand-green-700 hover:bg-brand-green-50"
+          disabled={item.stock != null && item.quantity >= item.stock}
+          className="disabled:cursor-not-allowed disabled:opacity-35 grid size-10 place-items-center rounded-lg border-2 border-brand-green-500 font-display text-xl font-black text-brand-green-700 hover:bg-brand-green-50"
           aria-label={`Increase ${item.name} quantity`}
         >
           +

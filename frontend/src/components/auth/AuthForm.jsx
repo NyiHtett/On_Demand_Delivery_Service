@@ -43,8 +43,9 @@ function AuthForm({pageTitle}) {
       ? loginUser({ email, password })
       : signUpUser({ name, email, password });
 
-    await request;
-    navigate('/shop');
+    const response = await request;
+    // Employees go straight to their dashboard; customers to the store.
+    navigate(response?.user?.userType?.toLowerCase() === 'employee' ? '/manager' : '/shop');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Signup failed.');
     }

@@ -137,7 +137,13 @@ CREATE TABLE orders (
     -- Nullable so an order survives payment-method deletion.
     card_number VARCHAR(30) DEFAULT NULL,
 
-    order_status VARCHAR(20) NOT NULL DEFAULT 'Ordered',
+    -- Pending = awaiting payment, Ordered = paid and queued for a robot.
+    order_status VARCHAR(20) NOT NULL DEFAULT 'Pending',
+
+    -- Stripe Checkout references (NULL when checkout ran without Stripe).
+    stripe_session_id VARCHAR(255) DEFAULT NULL UNIQUE,
+    payment_intent_id VARCHAR(255) DEFAULT NULL,
+    paid_at DATETIME DEFAULT NULL,
 
     -- Checkout-time snapshots.
     delivery_address VARCHAR(500) NOT NULL,
@@ -163,7 +169,7 @@ CREATE TABLE orders (
 
     CHECK (
         order_status IN (
-            'Active',
+            'Pending',
             'Ordered',
             'Cancelled',
             'Shipping',
@@ -217,9 +223,20 @@ CREATE TABLE delivery_tasks (
     -- Store address preserved for this particular delivery run.
     pickup_address VARCHAR(500) NOT NULL,
 
+    -- When the batch was opened by its first order.
     assigned_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- When the robot will leave; shrinks as more orders join the batch.
+    dispatch_at DATETIME DEFAULT NULL,
     start_time DATETIME DEFAULT NULL,
     end_time DATETIME DEFAULT NULL,
+
+    order_count INT NOT NULL DEFAULT 0,
+    total_weight DECIMAL(15,3) NOT NULL DEFAULT 0,
+
+    -- Route computed at dispatch (NULL fields when no Google Maps key was available).
+    distance_meters INT DEFAULT NULL,
+    duration_seconds INT DEFAULT NULL,
+    encoded_polyline TEXT DEFAULT NULL,
 
     CHECK (
         delivery_task_status IN (
@@ -242,6 +259,9 @@ CREATE TABLE delivery_task_orders (
     task_id INT NOT NULL,
     order_id INT NOT NULL,
     estimated_arrival DATETIME DEFAULT NULL,
+    stop_number INT DEFAULT NULL,
+    stop_latitude DOUBLE DEFAULT NULL,
+    stop_longitude DOUBLE DEFAULT NULL,
 
     PRIMARY KEY (task_id, order_id),
 

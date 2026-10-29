@@ -14,7 +14,7 @@ import com.example.demo.exception.ApiException;
 
 public class OrderServiceTest{
     OrderDao orderDao = mock(OrderDao.class);
-    OrderService orderService = new OrderService(orderDao);
+    OrderService orderService = new OrderService(orderDao, mock(DeliveryQueueService.class), mock(StripePaymentService.class));
 
     @Test
     public void updateSavesValidChange() {

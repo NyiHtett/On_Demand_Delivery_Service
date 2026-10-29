@@ -2,11 +2,17 @@ import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { API_TOKEN_KEY } from '../../services/apiClient';
 import { getCurrentUser } from '../../services/customerService';
+import { CART_UPDATED_EVENT, getCart } from '../../services/orderService';
 
-function Header({ cartCount, showCart = false }) {
+function countItems(cart) {
+  return (cart?.items || []).reduce((total, item) => total + Number(item.quantity || 0), 0);
+}
+
+function Header({ showCart = false }) {
   const location = useLocation();
   const [userIdentity, setUserIdentity] = useState({ name: 'Guest', status: '', canManage: false });
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
   const isManagerView = location.pathname === '/manager';
   const isGuest = userIdentity.name === 'Guest' && !userIdentity.status;
 
@@ -25,8 +31,11 @@ function Header({ cartCount, showCart = false }) {
         const userType = (user?.userType ?? user?.user_type ?? '').toLowerCase();
         const name = user?.name ?? user?.user_name ?? '';
         const canManage = ['admin', 'employee', 'manager'].includes(userType);
-        const status = canManage ? 'Admin' : 'Customer';
+        const status = canManage ? 'Employee' : 'Customer';
         setUserIdentity(name ? { name, status, canManage } : { name: 'Guest', status: '', canManage: false });
+        if (userType === 'customer') {
+          getCart().then((cart) => isCurrent && setCartCount(countItems(cart))).catch(() => {});
+        }
       } catch {
         // A missing or expired token should appear as a guest in the navbar.
         if (isCurrent) setUserIdentity({ name: 'Guest', status: '', canManage: false });
@@ -35,8 +44,13 @@ function Header({ cartCount, showCart = false }) {
 
     loadUserLabel();
 
+    // Any page that changes the cart announces it, so the badge stays in sync.
+    const onCartUpdated = (event) => setCartCount(countItems(event.detail));
+    window.addEventListener(CART_UPDATED_EVENT, onCartUpdated);
+
     return () => {
       isCurrent = false;
+      window.removeEventListener(CART_UPDATED_EVENT, onCartUpdated);
     };
   }, []);
 

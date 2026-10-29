@@ -81,4 +81,23 @@ public class ProductDao {
     public int deleteProduct(long productId) {
         return jdbcTemplate.update("DELETE FROM products WHERE product_id = ?", productId);
     }
+
+    // Row-locks the products for the rest of the checkout transaction so two customers
+    // can't both buy the last unit (non-functional requirement: Reliability/Integrity).
+    public List<ProductResponse> lockProducts(List<Long> productIds) {
+        if (productIds.isEmpty()) return List.of();
+        String placeholders = String.join(",", java.util.Collections.nCopies(productIds.size(), "?"));
+        return jdbcTemplate.query(
+            baseSelect() + " WHERE product_id IN (" + placeholders + ") FOR UPDATE",
+            (resultSet, rowNumber) -> mapProduct(resultSet),
+            productIds.toArray()
+        );
+    }
+
+    public int decrementStock(long productId, int amount) {
+        return jdbcTemplate.update(
+            "UPDATE products SET quantity = quantity - ? WHERE product_id = ? AND quantity >= ?",
+            amount, productId, amount
+        );
+    }
 }

@@ -6,6 +6,8 @@ import com.example.demo.service.OrderService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,5 +26,15 @@ public class CustomerOrderController {
     @GetMapping
     public List<OrderResponse> getCustomerOrders(@AuthenticationPrincipal UserResponse user) {
         return orderService.getOrdersForCustomer(user.id());
+    }
+
+    @GetMapping("/{orderId}")
+    public OrderResponse getCustomerOrder(@AuthenticationPrincipal UserResponse user, @PathVariable long orderId) {
+        return orderService.getOrderForCustomer(user.id(), orderId);
+    }
+
+    @PostMapping("/{orderId}/cancel")
+    public OrderResponse cancelOrder(@AuthenticationPrincipal UserResponse user, @PathVariable long orderId) {
+        return orderService.cancelForCustomer(user.id(), orderId);
     }
 }

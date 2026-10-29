@@ -7,6 +7,7 @@ import OrderStatusTable from '../components/manager/OrderStatusTable';
 import TrackingPanel from '../components/manager/TrackingPanel';
 import { getTracking } from '../services/trackingService';
 import Header from '../components/layout/Header';
+import usePolling from '../hooks/usePolling';
  
 
 function toDisplayProduct(product) {
@@ -47,9 +48,11 @@ function ManagerPage() {
 
   async function loadTracking() {
     setTrackingLoading(true);
-    setTrackingError('');
     try {
-      setTracking(await getTracking(mapApiKey));
+      const response = await getTracking(mapApiKey);
+      // serverOffsetMs lines the countdowns and robot position up with the server clock.
+      setTracking({ ...response, serverOffsetMs: response.serverTime - Date.now() });
+      setTrackingError('');
     } catch (error) {
       setTrackingError(error.message || 'Unable to load tracking data.');
     } finally {
@@ -57,9 +60,8 @@ function ManagerPage() {
     }
   }
 
-  useEffect(() => {
-    if (activeView === 'tracking') loadTracking();
-  }, [activeView]);
+  // Live robot queue and positions while the tab is open.
+  usePolling(loadTracking, 3000, activeView === 'tracking');
 
   function changeMapApiKey(value) {
     setMapApiKey(value);

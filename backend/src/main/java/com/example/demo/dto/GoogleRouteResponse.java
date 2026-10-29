@@ -7,5 +7,7 @@ public record GoogleRouteResponse(
     String duration,
     String encodedPolyline,
     List<Integer> optimizedIntermediateWaypointIndex,
-    List<RoutePoint> stopLocations
+    List<RoutePoint> stopLocations,
+    // Seconds to drive each leg, in visiting order (leg 0 = store to first stop).
+    List<Long> legDurationSeconds
 ) {}

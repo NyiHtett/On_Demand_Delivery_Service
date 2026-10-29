@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import GradientButton from '../components/ui/button-1';
 import { getInventory } from '../services/customerService';
+import { addCartItem } from '../services/orderService';
 
 const productIcons = {
   apple: '🍎',
@@ -39,6 +41,7 @@ function toDisplayProduct(product) {
         ? ''
         : `${weight} lb`,
     stock: Number(product.quantity ?? product.stock ?? 0),
+    description: product.description ?? '',
     imageUrl: product.imageUrl ?? product.image_url ?? '',
     icon: productIcons[iconKey] || '🛒',
   };
@@ -47,10 +50,13 @@ function toDisplayProduct(product) {
 function ProductOfferCard({
   product,
   quantity,
+  isAdding,
   onDecrease,
   onIncrease,
   onAddToCart,
 }) {
+  const [showDetails, setShowDetails] = useState(false);
+
   return (
     <article className="group relative flex min-h-[390px] flex-col overflow-hidden rounded-2xl border-2 border-brand-green-600 bg-brand-green-700 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
       <div className="relative h-44 shrink-0 overflow-hidden bg-brand-green-50">
@@ -94,12 +100,19 @@ function ProductOfferCard({
           <GradientButton
             width="72px"
             height="40px"
-            onClick={() => window.location.assign(`/products/${product.id}`)}
+            onClick={() => setShowDetails((open) => !open)}
             aria-label={`View ${product.name} details`}
+            aria-expanded={showDetails}
           >
-            View
+            {showDetails ? 'Hide' : 'View'}
           </GradientButton>
         </div>
+
+        {showDetails && (
+          <p className="mt-3 text-sm leading-6 text-paper/85">
+            {product.description || 'No description yet.'}
+          </p>
+        )}
 
         <div className="mt-auto pt-5">
           <div className="flex items-center justify-between border-t border-paper/20 pt-4">
@@ -140,10 +153,10 @@ function ProductOfferCard({
           <button
             type="button"
             onClick={onAddToCart}
-            disabled={quantity === 0}
+            disabled={quantity === 0 || isAdding}
             className="mt-4 flex min-h-11 w-full items-center justify-center rounded-xl bg-brand-orange-400 px-4 font-display font-bold text-brand-green-700 transition hover:bg-brand-orange-500 disabled:cursor-not-allowed disabled:bg-white/15 disabled:text-white/45"
           >
-            add to cart
+            {isAdding ? 'adding…' : 'add to cart'}
           </button>
         </div>
       </div>
@@ -156,7 +169,9 @@ function ShoppingOffersPage() {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('default');
   const [quantities, setQuantities] = useState({});
-  const [cartCount, setCartCount] = useState(0);
+  const [addingId, setAddingId] = useState(null);
+  const [notice, setNotice] = useState(null);
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
 
@@ -233,23 +248,37 @@ function ShoppingOffersPage() {
     }));
   }
 
-  function addToCart(productId) {
-    const quantity = quantities[productId] ?? 0;
+  async function addToCart(product) {
+    const quantity = quantities[product.id] ?? 0;
 
     if (quantity === 0) return;
 
-    setCartCount((current) => current + quantity);
-
-    setQuantities((current) => ({
-      ...current,
-      [productId]: 0,
-    }));
+    setAddingId(product.id);
+    setNotice(null);
+    try {
+      await addCartItem(product.id, quantity);
+      setQuantities((current) => ({
+        ...current,
+        [product.id]: 0,
+      }));
+      setNotice({ kind: 'ok', text: `Added ${quantity} ${product.name} to your cart.` });
+    } catch (error) {
+      if (error.status === 401) {
+        navigate('/login');
+      } else if (error.status === 403) {
+        setNotice({ kind: 'error', text: 'Employee accounts can’t shop. Log in as a customer to place an order.' });
+      } else {
+        setNotice({ kind: 'error', text: error.message || 'Couldn’t add that to your cart.' });
+      }
+    } finally {
+      setAddingId(null);
+    }
   }
 
   return (
     <div className="min-h-screen bg-paper px-5 pb-12 sm:px-8 lg:px-12">
       <div className="mx-auto max-w-7xl">
-        <Header showCart cartCount={cartCount} />
+        <Header showCart />
 
         <main className="pt-6 sm:pt-8">
           <div className="my-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -279,6 +308,15 @@ function ShoppingOffersPage() {
               </select>
             </label>
           </div>
+
+          {notice && (
+            <p
+              className={`mx-auto mb-6 max-w-xl rounded-xl px-4 py-3 text-center text-sm font-semibold ${notice.kind === 'ok' ? 'bg-brand-green-50 text-brand-green-700' : 'bg-red-50 text-red-700'}`}
+              role={notice.kind === 'ok' ? 'status' : 'alert'}
+            >
+              {notice.text}
+            </p>
+          )}
 
           {isLoading ? (
             <p
@@ -314,7 +352,8 @@ function ShoppingOffersPage() {
                     onIncrease={() =>
                       changeQuantity(product.id, 1, product.stock)
                     }
-                    onAddToCart={() => addToCart(product.id)}
+                    isAdding={addingId === product.id}
+                    onAddToCart={() => addToCart(product)}
                   />
                 </li>
               ))}
