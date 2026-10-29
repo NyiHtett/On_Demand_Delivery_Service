@@ -43,6 +43,8 @@ export default defineConfig({
 
   use: {
     baseURL: BASE_URL,
+    // Set PW_CHANNEL=chrome (or msedge) to use the installed browser if Playwright's bundled Chromium can't launch.
+    channel: process.env.PW_CHANNEL || undefined,
     viewport: null,
     launchOptions: {
       args: ['--start-maximized'],

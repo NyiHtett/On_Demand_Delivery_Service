@@ -29,7 +29,8 @@ services:
 
     # Connects the computer's port 3306 to the container's port 3306
     ports:
-      - "3306:3306"
+      # Override with MYSQL_HOST_PORT if a local MySQL already uses 3306 (npm run dev does this automatically)
+      - "${MYSQL_HOST_PORT:-3306}:3306"
 
     # Stores database data permanently
     # Data remains even if the container is stopped or recreated
