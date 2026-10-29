@@ -62,7 +62,7 @@ public class ProductDaoTest {
 
         int rowsChanged = productDao.updateProduct(
             id,
-            25,
+            2,
             new BigDecimal("1.00"),
             new BigDecimal("1.000"),
             "test update",
@@ -115,5 +115,26 @@ public class ProductDaoTest {
         assertEquals(23, testProduct.quantity());
 
         assertTrue(products.stream().anyMatch(p -> p.name().equals("Apple")));
+    }
+
+    @Test
+    public void updateProductCantBeNegative() {
+        long id = createTestProduct();
+        
+        int rowsChanged = productDao.updateProduct(
+            id,
+            -1000,
+            new BigDecimal("1.00"),
+            new BigDecimal("1.000"),
+            "update messsage testing testing",
+            null
+        );
+
+        assertEquals(0, rowsChanged);
+
+        Integer quantity = jdbcTemplate.queryForObject(
+            "SELECT quantity FROM products WHERE product_id = ?", Integer.class, id
+        );
+        assertEquals(23, quantity);
     }
 }

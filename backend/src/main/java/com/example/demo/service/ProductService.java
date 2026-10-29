@@ -38,12 +38,8 @@ public class ProductService {
 
     @Transactional
     public ProductResponse updateProduct(long productId, UpdateProductRequest req) {
-        if (req == null || req.quantity() == null || req.unitPrice() == null || req.unitWeight() == null) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "quantity, price, and weight can't be null");
-        }
-
-        if (req.quantity() < 0) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "stock has to be positive");
+        if (req == null || req.quantityChange() == null || req.unitPrice() == null || req.unitWeight() == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "quantityChange, price, and weight can't be null");
         }
 
         if (req.unitPrice().compareTo(BigDecimal.ZERO) <= 0 || req.unitWeight().compareTo(BigDecimal.ZERO) <= 0) { //using big decimal for precision, since floating point gives a lot of errors
@@ -51,16 +47,19 @@ public class ProductService {
         }
 
         ProductResponse preupdate = getProduct(productId);
+        String name = preupdate.name();
 
-        int numUpdate = productDao.updateProduct(productId, req.quantity(), req.unitPrice(), req.unitWeight(), req.description(), req.imageUrl());
+        int numUpdate = productDao.updateProduct(productId, req.quantityChange(), req.unitPrice(), req.unitWeight(), req.description(), req.imageUrl());
         if (numUpdate == 0) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "product does not exist");
+            int current = getProduct(productId).quantity();
+            throw new ApiException(HttpStatus.CONFLICT, "can't remove " + (-req.quantityChange()) + " from " + name + ", only " + current + " in stock");
         }
 
+        ProductResponse updated = getProduct(productId);
+
         //going to add a new update row in the database for every quantity that's been updated
-        String name = preupdate.name();
-        if (!Objects.equals(preupdate.quantity(), req.quantity())) {
-            inventoryUpdate(productId, name, "Updated", "quantity", preupdate.quantity(), req.quantity(), null);
+        if (req.quantityChange() != 0) {
+            inventoryUpdate(productId, name, "Updated", "quantity", updated.quantity() - req.quantityChange(), updated.quantity(), null);
         }
 
         if (preupdate.unitPrice().compareTo(req.unitPrice()) != 0) {
@@ -79,7 +78,7 @@ public class ProductService {
             inventoryUpdate(productId, name, "Updated", "image_url", preupdate.imageUrl (), req.imageUrl(), null);
         }
 
-        return getProduct(productId);
+        return updated;
     }
 
     @Transactional //this part is to make sure that both DAO writes happen together (if one fails then none happen)
