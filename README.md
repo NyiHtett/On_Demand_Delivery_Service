@@ -9,6 +9,28 @@
 - MySQL
 - JDBC
 
+## Quick Start
+
+Requires Docker Desktop (running), Node, and Java 17+. From the project root:
+
+```bash
+npm run dev
+```
+
+This starts MySQL in Docker, resets the database from `backend/db/schema.sql` + `seed.sql`, then runs the Spring Boot backend (http://localhost:8080) and the React frontend (http://localhost:5173). Press `Ctrl + C` to stop the backend and frontend; MySQL keeps running (`docker compose down` to stop it).
+
+```bash
+npm run dev -- --keep-db   # same, but keep the current database data
+npm run db:reset           # only reset the database
+npm test                   # reset the database, then run backend tests and Playwright tests
+npm test -- --backend      # backend tests only
+npm test -- --e2e          # Playwright tests only
+```
+
+If another MySQL is already using port 3306, the scripts use 3307 automatically. API keys (`GOOGLE_MAPS_API_KEY`, `STRIPE_SECRET_KEY`) can go in a `.env` file in the project root (it is gitignored). If Playwright's Chromium won't launch, set `PW_CHANNEL=chrome` to use your installed Chrome.
+
+The manual steps below still work if you prefer them.
+
 ## Running the Project
 
 ### 1. Start Docker Desktop
