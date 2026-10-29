@@ -4,7 +4,8 @@ function formatMoney(amount) {
   return `$${amount.toFixed(2)}`;
 }
 
-function CartSidebar({ summary, deliveryFee }) {
+// summary: { itemCount, totalWeight, subtotal, deliveryFee, total } from the backend cart.
+function CartSidebar({ summary, checkoutLink = true }) {
   return (
     <aside className="rounded-2xl border-2 border-brand-green-100 bg-white p-6" aria-labelledby="order-summary-heading">
       <h2 id="order-summary-heading" className="font-display text-2xl font-black text-brand-green-700">
@@ -26,24 +27,24 @@ function CartSidebar({ summary, deliveryFee }) {
           <dd>{formatMoney(summary.subtotal)}</dd>
         </div>
         <div className="flex justify-between gap-4">
-          <dt>Estimated delivery fee</dt>
-          <dd>{formatMoney(deliveryFee)}</dd>
+          <dt>Robot delivery {summary.deliveryFee > 0 ? '(20 lb and over)' : '(under 20 lb)'}</dt>
+          <dd>{summary.deliveryFee > 0 ? formatMoney(summary.deliveryFee) : 'free'}</dd>
         </div>
       </dl>
 
       <div className="mt-6 flex items-center justify-between gap-4 border-t border-brand-green-100 pt-5">
-        <span className="font-display text-xl font-black text-ink">Estimated total</span>
+        <span className="font-display text-xl font-black text-ink">Total</span>
         <strong className="font-display text-2xl text-brand-orange-500">
-          {formatMoney(summary.subtotal + deliveryFee)}
+          {formatMoney(summary.total)}
         </strong>
       </div>
 
-      <Link
+      {checkoutLink && <Link
         to="/checkout"
         className="mt-6 flex min-h-12 w-full items-center justify-center rounded-xl bg-brand-green-600 px-5 font-display font-bold text-white no-underline hover:bg-brand-green-700 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-orange-400"
       >
         continue to checkout
-      </Link>
+      </Link>}
     </aside>
   );
 }

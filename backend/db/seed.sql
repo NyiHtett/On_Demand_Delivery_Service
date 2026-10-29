@@ -1,5 +1,4 @@
--- all  users use the  password "password".
--- it is a simple bcrypt hash.
+-- all users use the password "P@ssw0rd!" (bcrypt hash below, see passwordGen.java).
 -- 
 INSERT INTO users (
     user_name,
@@ -18,7 +17,14 @@ VALUES
      '$2a$10$MROHWY27yUHhbx1jRu1IXOSr9ilUJgbkEPCWylhHDNQ5kNpNeuLue', 'Employee'),
     ('Johnathan Aye', 'johnathan.aye@sjsu.edu', '11231231234',
      'One Washington Square, San Jose, CA 95192',
-     '$2a$10$MROHWY27yUHhbx1jRu1IXOSr9ilUJgbkEPCWylhHDNQ5kNpNeuLue', 'Employee')
+     '$2a$10$MROHWY27yUHhbx1jRu1IXOSr9ilUJgbkEPCWylhHDNQ5kNpNeuLue', 'Employee'),
+    -- extra customers at different addresses so robot batches have multi-stop routes
+    ('Maria Lopez', 'maria.lopez@example.com', '14085550101',
+     '777 The Alameda, San Jose, CA 95126',
+     '$2a$10$MROHWY27yUHhbx1jRu1IXOSr9ilUJgbkEPCWylhHDNQ5kNpNeuLue', 'Customer'),
+    ('Sam Patel', 'sam.patel@example.com', '14085550102',
+     '1000 Lincoln Ave, San Jose, CA 95125',
+     '$2a$10$MROHWY27yUHhbx1jRu1IXOSr9ilUJgbkEPCWylhHDNQ5kNpNeuLue', 'Customer')
 ON DUPLICATE KEY UPDATE
     user_name = VALUES(user_name),
     phone = VALUES(phone),
@@ -78,7 +84,7 @@ VALUES
     ('Banana', 'a hand of bananas from Brazil', 3.512, 5.12,
      'https://img.magnific.com/free-vector/vector-ripe-yellow-banana-bunch-isolated-white-background_1284-45456.jpg?semt=ais_hybrid&w=740&q=80', 100),
     ('Tomato', 'tomato grown in California', 0.333, 1.00,
-     'https://img.magnific.com/free-vector/vector-ripe-yellow-banana-bunch-isolated-white-background_1284-45456.jpg?semt=ais_hybrid&w=740&q=80', 30),
+     'https://upload.wikimedia.org/wikipedia/commons/8/89/Tomato_je.jpg', 30),
     ('Milk', '1 gallon of milk', 8.601, 6.13,
      'https://media.istockphoto.com/id/496681092/photo/gallon-milk-bottle-with-blue-cap-isolated-on-white.jpg?s=612x612&w=0&k=20&c=vFIn8_k0QG118eoZIrFvVsPd5gcPMagYrGeIOfz6EsU=', 40),
     ('Romaine Lettuce', 'a fresh head of lettuce from eastern US', 1.753, 3.10,
@@ -90,25 +96,29 @@ ON DUPLICATE KEY UPDATE
     image_url = VALUES(image_url),
     quantity = VALUES(quantity);
 
-INSERT INTO shopping_carts(cart_id, customer_id, table_status) VALUES (1,1, "Active");
+-- Anthony's current (Active) cart, so the cart page has something in it.
+INSERT INTO shopping_carts (cart_id, customer_id, table_status)
+VALUES (1, 1, 'Active');
 
-INSERT INTO orders (order_id, customer_id, cart_id, card_number, order_status, delivery_address, subtotal, delivery_fee, total_weight)
-VALUES (1, 1, 1, '1234567891011121', 'Active', "One washington Square San Jose, CA 95192", 22.03, 0, 13.601);
+INSERT INTO cart_items (cart_id, product_id, product_name, unit_weight, unit_price, quantity)
+VALUES (1, 1, 'Apple', 0.400, 1.00, 3),
+    (1, 2, 'Carrot', 0.220, 1.40, 2);
+
+-- Two past (Completed) orders for Anthony. Each order has its own cart because
+-- orders.cart_id is UNIQUE; an Active cart must never already have an order.
+INSERT INTO shopping_carts (cart_id, customer_id, table_status)
+VALUES (2, 1, 'Completed'),
+    (3, 1, 'Completed');
+
+INSERT INTO orders (order_id, customer_id, cart_id, order_status, delivery_address, subtotal, delivery_fee, total_weight, paid_at)
+VALUES (1, 1, 3, 'Completed', 'One Washington Square, San Jose, CA 95192', 22.03, 0, 13.601, NOW()),
+    (2, 1, 2, 'Completed', 'One Washington Square, San Jose, CA 95192', 7.45, 0, 2.300, NOW());
 
 INSERT INTO order_items (order_id, product_id, product_name, unit_weight, unit_price, quantity)
-VALUES (1,1, 'Apple', 0.400, 1.00, 5),
-    (1,3, 'Toast', 1.500, 5.45, 2),
-    (1,7, 'Milk', 8.601, 6.13, 1);
-
--- Manual completed order for Anthony Kieu while checkout/Stripe is not available.
-INSERT INTO shopping_carts(cart_id, customer_id, table_status)
-VALUES (2, 1, 'Completed');
-
-INSERT INTO orders (order_id, customer_id, cart_id, card_number, order_status, delivery_address, subtotal, delivery_fee, total_weight)
-VALUES (2, 1, 2, '1234567891011121', 'Completed', 'One Washington Square, San Jose, CA 95192', 7.45, 0, 2.300);
-
-INSERT INTO order_items (order_id, product_id, product_name, unit_weight, unit_price, quantity)
-VALUES (2, 1, 'Apple', 0.400, 1.00, 2),
+VALUES (1, 1, 'Apple', 0.400, 1.00, 5),
+    (1, 3, 'Toast', 1.500, 5.45, 2),
+    (1, 7, 'Milk', 8.601, 6.13, 1),
+    (2, 1, 'Apple', 0.400, 1.00, 2),
     (2, 3, 'Toast', 1.500, 5.45, 1);
 
 /*

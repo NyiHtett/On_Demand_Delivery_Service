@@ -42,7 +42,7 @@ public class OrderDaoTest {
 
     @Test
     public void updateOrderStatusChangesRow() {
-        jdbcTemplate.update("UPDATE orders SET order_status = 'Active' where order_id = 1");
+        jdbcTemplate.update("UPDATE orders SET order_status = 'Pending' where order_id = 1");
 
         int rowsChanged = orderDao.updateOrderStatus(1L, "Cancelled");
 

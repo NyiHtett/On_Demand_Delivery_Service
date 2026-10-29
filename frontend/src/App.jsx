@@ -10,6 +10,7 @@ import AccountPage from './pages/AccountPage';
 import ManagerPage from './pages/ManagerPage';
 import NotFoundPage from './pages/NotFoundPage';
 import OrderHistoryPage from './pages/OrderHistoryPage';
+import OrderConfirmationPage from './pages/OrderConfirmationPage';
 
 //testing
 import ShoppingOffersPage from './pages/ShoppingOffersPage';
@@ -26,6 +27,7 @@ function App() {
         <Route path="/sign-up" element={<SignUpPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/order-history" element={<OrderHistoryPage />} />
+        <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
         <Route path="/manager" element={<ManagerPage />} />
         <Route path="/shop-offers" element={<ShoppingOffersPage />} />
         <Route path="*" element={<NotFoundPage />} />

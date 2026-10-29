@@ -1,67 +1,62 @@
 package com.example.demo.service;
 
-import com.example.demo.dao.TrackingDao;
+import com.example.demo.dao.DeliveryDao;
+import com.example.demo.dto.QueueBatchResponse;
+import com.example.demo.dto.RobotRunResponse;
 import com.example.demo.dto.TrackingResponse;
-import com.example.demo.dto.GoogleRouteResponse;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import com.example.demo.dto.RoutePoint;
 
 @Service
 public class TrackingService {
-    private final TrackingDao trackingDao;
+    private final DeliveryDao deliveryDao;
+    private final DeliveryQueueService deliveryQueue;
     private final GoogleRoutesService googleRoutesService;
 
-    public TrackingService(TrackingDao trackingDao, GoogleRoutesService googleRoutesService) {
-        this.trackingDao = trackingDao;
+    public TrackingService(DeliveryDao deliveryDao, DeliveryQueueService deliveryQueue, GoogleRoutesService googleRoutesService) {
+        this.deliveryDao = deliveryDao;
+        this.deliveryQueue = deliveryQueue;
         this.googleRoutesService = googleRoutesService;
     }
 
     public TrackingResponse getTracking(String mapApiKey) {
-        String pickupAddress = trackingDao.getPickupAddress();
-        List<com.example.demo.dto.TrackingOrderResponse> orders = trackingDao.getActiveOrders();
-        Long distanceMeters = null;
-        String duration = null;
-        String encodedPolyline = null;
-        String routeError = null;
-        List<RoutePoint> stopLocations = List.of();
+        // Routes are computed when a robot leaves, so remember the employee's key for the dispatcher.
+        googleRoutesService.rememberApiKey(mapApiKey);
 
-        if (pickupAddress != null && !orders.isEmpty()) {
-            try {
-                GoogleRouteResponse route = googleRoutesService.calculateRoute(mapApiKey, pickupAddress, orders);
-                if (route != null) {
-                    distanceMeters = route.distanceMeters();
-                    duration = route.duration();
-                    encodedPolyline = route.encodedPolyline();
-                    stopLocations = route.stopLocations();
-                    orders = reorderOrders(orders, route.optimizedIntermediateWaypointIndex());
-                } else {
-                    routeError = "No Google Maps API key was provided. Enter a valid Routes API key and try again.";
-                }
-            } catch (IllegalStateException exception) {
-                routeError = exception.getMessage();
-            }
+        QueueBatchResponse queue = deliveryDao.getOpenBatch()
+            .map(batch -> new QueueBatchResponse(
+                batch.taskId(),
+                batch.orderCount(),
+                batch.totalWeight(),
+                deliveryQueue.getMaxOrders(),
+                deliveryQueue.getMaxWeight(),
+                batch.openedAt(),
+                batch.dispatchAt() == null ? batch.openedAt() : batch.dispatchAt(),
+                deliveryDao.getTaskOrders(batch.taskId())))
+            .orElse(null);
+
+        List<RobotRunResponse> robots = deliveryDao.getRobotsOnTheRoad().stream()
+            .map(run -> new RobotRunResponse(
+                run.taskId(),
+                run.status(),
+                run.startTime(),
+                run.durationSeconds(),
+                run.distanceMeters(),
+                run.encodedPolyline(),
+                deliveryDao.getTaskOrders(run.taskId())))
+            .toList();
+
+        String routeError;
+        if (!googleRoutesService.hasApiKey()) {
+            routeError = "No Google Maps API key yet, so robots use estimated stop times and no map is drawn. Enter a Routes API key (or set GOOGLE_MAPS_API_KEY) and the next robot to leave will get a real route.";
+        } else if (googleRoutesService.getLastError() != null) {
+            routeError = "Google Maps couldn't plan the last robot's route, so it used estimated stop times. " + googleRoutesService.getLastError();
+        } else {
+            routeError = null;
         }
 
-        return new TrackingResponse(trackingDao.getRouteStatus(), pickupAddress, orders,
-            distanceMeters, duration, encodedPolyline, routeError, stopLocations);
-    }
-
-    private List<com.example.demo.dto.TrackingOrderResponse> reorderOrders(
-        List<com.example.demo.dto.TrackingOrderResponse> orders,
-        List<Integer> indexes
-    ) {
-        if (indexes == null || indexes.size() != orders.size() - 1) return orders;
-        List<com.example.demo.dto.TrackingOrderResponse> reordered = new ArrayList<>();
-        for (Integer index : indexes) {
-            if (index == null || index < 0 || index >= orders.size()) return orders;
-            reordered.add(orders.get(index));
-        }
-        // The final destination is intentionally fixed as the last stop so the
-        // route does not return to the pickup location.
-        reordered.add(orders.get(orders.size() - 1));
-        return reordered;
+        return new TrackingResponse(System.currentTimeMillis(), deliveryQueue.getPickupAddress(), queue, robots, routeError,
+            googleRoutesService.hasServerApiKey());
     }
 }

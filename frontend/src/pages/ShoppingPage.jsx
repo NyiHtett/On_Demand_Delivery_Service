@@ -142,7 +142,7 @@ function ShoppingPage() {
   return (
     <div className="min-h-screen bg-paper px-5 pb-10 sm:px-8 lg:px-12">
       <div className="mx-auto max-w-7xl">
-        <Header showCart cartCount={cartCount} />
+        <Header showCart />
 
         <main className="pt-6 sm:pt-8">
           <div className="text-center">

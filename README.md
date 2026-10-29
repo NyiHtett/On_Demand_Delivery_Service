@@ -27,7 +27,18 @@ npm test -- --backend      # backend tests only
 npm test -- --e2e          # Playwright tests only
 ```
 
-If another MySQL is already using port 3306, the scripts use 3307 automatically. API keys (`GOOGLE_MAPS_API_KEY`, `STRIPE_SECRET_KEY`) can go in a `.env` file in the project root (it is gitignored). If Playwright's Chromium won't launch, set `PW_CHANNEL=chrome` to use your installed Chrome.
+If another MySQL is already using port 3306, the scripts use 3307 automatically. If Playwright's Chromium won't launch, set `PW_CHANNEL=chrome` to use your installed Chrome.
+
+Settings go in a `.env` file in the project root (it is gitignored, never commit keys):
+
+```bash
+STRIPE_SECRET_KEY=sk_test_...      # without it, checkout skips Stripe and marks orders paid right away
+GOOGLE_MAPS_API_KEY=...            # robot routes + map; without it robots use 5 min per stop and no map
+ROBOT_QUEUE_UNIT_SECONDS=10        # demo speed: robot timer counts 10 s "minutes" (default 60)
+ROBOT_TIME_SCALE=20                # demo speed: robots drive 20x faster (default 1)
+```
+
+Stripe test card: `4242 4242 4242 4242`, any future expiry, any CVC. Seed logins (password `P@ssw0rd!`): customers `anthony.k.130550@gmail.com`, `maria.lopez@example.com`, `sam.patel@example.com`; employees `nyi.htet@sjsu.edu`, `johnathan.aye@sjsu.edu`.
 
 The manual steps below still work if you prefer them.
 

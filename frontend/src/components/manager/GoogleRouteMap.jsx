@@ -62,18 +62,27 @@ const deliveryIcon = L.divIcon({
   iconAnchor: [21, 21],
 });
 
-function stopIcon(label) {
+function stopIcon(label, delivered) {
+  const background = delivered ? '#397522' : '#f5a623';
+  const color = delivered ? 'white' : '#20301d';
   return L.divIcon({
     className: '',
-    html: `<span style="display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#f5a623;border:3px solid white;box-shadow:0 1px 5px #555;color:#20301d;font-weight:800">${label}</span>`,
+    html: `<span style="display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:${background};border:3px solid white;box-shadow:0 1px 5px #555;color:${color};font-weight:800">${label}</span>`,
     iconSize: [28, 28],
     iconAnchor: [14, 14],
   });
 }
 
-function GoogleRouteMap({ encodedPolyline, stopLocations = [] }) {
+/**
+ * Draws a robot's route and moves the truck by real elapsed time:
+ * progress = (now - startTime) / durationSeconds, using the server clock (serverOffsetMs).
+ */
+function GoogleRouteMap({ encodedPolyline, stops = [], startTime, durationSeconds, serverOffsetMs = 0 }) {
   const mapElement = useRef(null);
+  const stopLayer = useRef(null);
+  const timing = useRef({ startTime, durationSeconds, serverOffsetMs });
   const [error, setError] = useState('');
+  timing.current = { startTime, durationSeconds, serverOffsetMs };
 
   useEffect(() => {
     if (!encodedPolyline || !mapElement.current) return undefined;
@@ -86,49 +95,56 @@ function GoogleRouteMap({ encodedPolyline, stopLocations = [] }) {
       className: 'dark-map-tiles',
       maxZoom: 19,
     }).addTo(map);
-    const bounds = L.latLngBounds(path);
-    map.fitBounds(bounds, { padding: [24, 24] });
+    map.fitBounds(L.latLngBounds(path), { padding: [24, 24] });
 
     L.polyline(path, { color: '#397522', weight: 5, opacity: 0.2, dashArray: '8 10' }).addTo(map);
-    const animatedLine = L.polyline([], { color: '#8fbe82', weight: 5, opacity: 1 }).addTo(map);
+    const travelledLine = L.polyline([], { color: '#8fbe82', weight: 5, opacity: 1 }).addTo(map);
     const deliveryMarker = L.marker(path[0], { icon: deliveryIcon, zIndexOffset: 1000 }).addTo(map);
     const distances = getPathDistances(path);
-    const animationDuration = 18000;
-    const animationStart = performance.now();
+    stopLayer.current = L.layerGroup().addTo(map);
     let animationFrame;
 
-    const animateDelivery = (timestamp) => {
-      const progress = ((timestamp - animationStart) % animationDuration) / animationDuration;
+    const animateDelivery = () => {
+      const { startTime: start, durationSeconds: duration, serverOffsetMs: offset } = timing.current;
+      const elapsed = Date.now() + offset - start;
+      const progress = duration ? Math.min(1, Math.max(0, elapsed / (duration * 1000))) : 0;
       const currentPoint = interpolatePath(path, distances, progress);
-      const segmentIndex = getSegmentIndex(distances, progress);
       deliveryMarker.setLatLng(currentPoint);
-      animatedLine.setLatLngs([...path.slice(0, segmentIndex), currentPoint]);
+      travelledLine.setLatLngs([...path.slice(0, getSegmentIndex(distances, progress)), currentPoint]);
       animationFrame = requestAnimationFrame(animateDelivery);
     };
     animationFrame = requestAnimationFrame(animateDelivery);
 
     L.circleMarker(path[0], { radius: 8, color: '#e8890c', fillColor: '#f5a623', fillOpacity: 1 })
       .addTo(map)
-      .bindTooltip('Pickup', { permanent: true, direction: 'top', offset: [0, -8] });
-    stopLocations.forEach((stop, index) => {
-      L.marker([stop.latitude, stop.longitude], { icon: stopIcon(index + 1) })
-        .addTo(map)
-        .bindTooltip(`Delivery stop ${index + 1}`, { direction: 'top', offset: [0, -12] });
-    });
+      .bindTooltip('OFS store', { permanent: true, direction: 'top', offset: [0, -8] });
 
     return () => {
       window.cancelAnimationFrame(animationFrame);
+      stopLayer.current = null;
       map.remove();
     };
-  }, [encodedPolyline, stopLocations]);
+  }, [encodedPolyline]);
+
+  // Redraw stop pins on each poll so delivered stops turn green.
+  useEffect(() => {
+    const layer = stopLayer.current;
+    if (!layer) return;
+    layer.clearLayers();
+    stops.filter((stop) => stop.latitude != null).forEach((stop) => {
+      L.marker([stop.latitude, stop.longitude], { icon: stopIcon(stop.stopNumber, stop.orderStatus === 'Completed') })
+        .addTo(layer)
+        .bindTooltip(`Stop ${stop.stopNumber}: order #${stop.orderId}, ${stop.customerName}`, { direction: 'top', offset: [0, -12] });
+    });
+  }, [stops, encodedPolyline]);
 
   if (error) return <p className="mt-4 rounded-xl border border-brand-orange-100 bg-brand-orange-100/50 p-4 text-sm text-ink/70">{error}</p>;
   if (!encodedPolyline) return null;
   return (
-    <div className="relative mt-5">
-      <div ref={mapElement} className="h-80 w-full overflow-hidden rounded-xl border-2 border-brand-green-100" aria-label="Animated OpenStreetMap route map" />
-      <span className="absolute right-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-brand-green-700 shadow-sm">
-        live route simulation
+    <div className="relative">
+      <div ref={mapElement} className="h-80 w-full overflow-hidden rounded-xl border-2 border-brand-green-100" aria-label="Robot route map" />
+      <span className="absolute right-3 top-3 z-[400] rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-brand-green-700 shadow-sm">
+        live robot position
       </span>
     </div>
   );

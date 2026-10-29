@@ -65,20 +65,22 @@ public class OrderControllerTest {
             1L,
             1L,
             1L,
-            "1234567891011121",
-            "Active",
+            "Ordered",
             "One Washington Square",
             new BigDecimal("22.03"),
             new BigDecimal("0.00"),
             new BigDecimal("13.601"),
-            List.of() //empty list for the order items, just for the test
+            List.of(), //empty list for the order items, just for the test
+            null,
+            null,
+            null
         );
         when(orderService.getAllOrders()).thenReturn(List.of(order));
 
         mockMvc.perform(get("/api/orders").header("Authorization", "Bearer employee-token"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].orderId").value(1))
-            .andExpect(jsonPath("$[0].orderStatus").value("Active"));
+            .andExpect(jsonPath("$[0].orderStatus").value("Ordered"));
     }
 
     @Test

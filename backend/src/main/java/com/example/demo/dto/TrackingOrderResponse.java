@@ -1,13 +1,16 @@
 package com.example.demo.dto;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 public record TrackingOrderResponse(
     long orderId,
     String customerName,
     String deliveryAddress,
     String orderStatus,
-    String deliveryTaskStatus,
-    LocalDateTime createdAt,
-    LocalDateTime estimatedArrival
+    BigDecimal totalWeight,
+    Integer stopNumber,
+    Double latitude,
+    Double longitude,
+    // Epoch milliseconds; null until the robot is dispatched.
+    Long estimatedArrival
 ) {}

@@ -2,13 +2,13 @@ package com.example.demo.dto;
 
 import java.util.List;
 
+// serverTime lets the dashboard line its countdowns up with the server clock.
 public record TrackingResponse(
-    String routeStatus,
+    long serverTime,
     String pickupAddress,
-    List<TrackingOrderResponse> orders,
-    Long routeDistanceMeters,
-    String routeDuration,
-    String encodedPolyline,
+    QueueBatchResponse queue,
+    List<RobotRunResponse> robots,
     String routeError,
-    List<RoutePoint> stopLocations
+    // True when GOOGLE_MAPS_API_KEY is set on the server, so the page doesn't need to ask for a key.
+    boolean serverHasMapsKey
 ) {}

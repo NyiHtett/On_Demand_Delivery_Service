@@ -7,6 +7,7 @@ import {
   BACKEND,
   FRONTEND,
   ensureDatabase,
+  ensurePortsFree,
   ensureFrontendDeps,
   killTree,
   loadDotEnv,
@@ -22,6 +23,7 @@ const keepDb = args.has('--keep-db');
 const dbOnly = args.has('--db-only');
 
 loadDotEnv();
+if (!dbOnly) await ensurePortsFree([8080, 5173]);
 await ensureDatabase();
 if (!keepDb) reseedDatabase();
 if (dbOnly) process.exit(0);
@@ -30,7 +32,8 @@ ensureFrontendDeps();
 
 const children = [
   startService('backend', mavenCommand(), ['-q', 'spring-boot:run'], BACKEND),
-  startService('frontend', 'npm', ['run', 'dev'], FRONTEND),
+  // strictPort: Stripe redirects back to :5173, so never silently move to another port.
+  startService('frontend', 'npm', ['run', 'dev', '--', '--strictPort'], FRONTEND),
 ];
 
 let stopping = false;
