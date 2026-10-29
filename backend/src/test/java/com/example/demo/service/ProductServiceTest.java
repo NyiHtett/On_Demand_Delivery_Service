@@ -26,6 +26,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.example.demo.dto.UserResponse;
 import com.example.demo.dto.CreateProductRequest;
+import org.springframework.http.HttpStatus;
 
 public class ProductServiceTest {
     ProductDao productDao = mock(ProductDao.class);
@@ -89,18 +90,22 @@ public class ProductServiceTest {
     }
 
     @Test
-    public void updateProductRejectsNegativeQuantity() {
+    public void updateProductRejectsRemovingMoreThanStock() {
         UpdateProductRequest req = new UpdateProductRequest(
-            -1,
+            -1000,
             new BigDecimal("1.00"),
             new BigDecimal("0.400"),
             "fresh apples",
             null
         );
 
-        assertThrows(ApiException.class, () -> productService.updateProduct(1L, req));
+        when(productDao.getProduct(1L)).thenReturn(Optional.of(apple));
+        when(productDao.updateProduct(eq(1L), eq(-1000), any(), any(), any(), any())).thenReturn(0);
 
-        verify(productDao, never()).updateProduct(anyLong(), anyInt(), any(), any(), any(), any());
+        ApiException e = assertThrows(ApiException.class, () -> productService.updateProduct(1L, req));
+        assertEquals(HttpStatus.CONFLICT, e.getStatus());
+
+        verify(inventoryUpdateDao, never()).inventoryUpdate(anyLong(), any(), any(), any(), any(), any(), any(), any(), any());
     }
 
     @Test 
@@ -136,7 +141,7 @@ public class ProductServiceTest {
     @Test
     public void updateProductSavesAndLogsChange() {
         UpdateProductRequest req = new UpdateProductRequest(
-            50,
+            -50,
             new BigDecimal("1.00"),
             new BigDecimal("0.400"),
             "fresh apples",
@@ -148,13 +153,13 @@ public class ProductServiceTest {
         );
 
         when(productDao.getProduct(1L)).thenReturn(Optional.of(apple), Optional.of(appleAfter));
-        when(productDao.updateProduct(eq(1L), eq(50), any(), any(), any(), any())).thenReturn(1);
+        when(productDao.updateProduct(eq(1L), eq(-50), any(), any(), any(), any())).thenReturn(1);
 
         ProductResponse result = productService.updateProduct(1L, req);
 
         assertEquals(50, result.quantity());
 
-        verify(productDao).updateProduct(1L, 50, new BigDecimal("1.00"), new BigDecimal("0.400"), "fresh apples", null);
+        verify(productDao).updateProduct(1L, -50, new BigDecimal("1.00"), new BigDecimal("0.400"), "fresh apples", null);
 
         verify(inventoryUpdateDao).inventoryUpdate(1L, "Apple", 2L, "Test Employee", "Updated", "quantity", "100", "50", null);
         verify(inventoryUpdateDao, never()).inventoryUpdate(anyLong(), any(), any(), any(), any(), eq("unit_price"), any(), any(), any());

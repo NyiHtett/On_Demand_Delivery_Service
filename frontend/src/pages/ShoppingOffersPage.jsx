@@ -4,6 +4,7 @@ import Header from '../components/layout/Header';
 import GradientButton from '../components/ui/button-1';
 import { getInventory } from '../services/customerService';
 import { addCartItem } from '../services/orderService';
+import usePolling from '../hooks/usePolling';
 
 const productIcons = {
   apple: '🍎',
@@ -175,44 +176,17 @@ function ShoppingOffersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
 
-  useEffect(() => {
-    let isCurrent = true;
-
-    async function loadInventory() {
-      setIsLoading(true);
+  usePolling(async () => {
+    try {
+      const inventory = await getInventory();
+      setProducts(inventory.map(toDisplayProduct));
       setLoadError('');
-
-      try {
-        const response = await getInventory();
-
-        const inventory = Array.isArray(response)
-          ? response
-          : response?.products || response?.items || [];
-
-        if (isCurrent) {
-          setProducts(inventory.map(toDisplayProduct));
-        }
-      } catch (error) {
-        if (isCurrent) {
-          setLoadError(
-            error instanceof Error
-              ? error.message
-              : 'Unable to load inventory.'
-          );
-        }
-      } finally {
-        if (isCurrent) {
-          setIsLoading(false);
-        }
-      }
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'could not load the inventory');
+    } finally {
+      setIsLoading(false);
     }
-
-    loadInventory();
-
-    return () => {
-      isCurrent = false;
-    };
-  }, []);
+  }, 2000);
 
   const visibleProducts = useMemo(() => {
     const query = search.trim().toLowerCase();

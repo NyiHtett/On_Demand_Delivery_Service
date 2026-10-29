@@ -37,15 +37,6 @@ function ManagerPage() {
   const [trackingError, setTrackingError] = useState('');
   const [mapApiKey, setMapApiKey] = useState(() => localStorage.getItem('google_maps_api_key') || '');
 
-  useEffect(() => {
-    getInventory().then((data) => {
-      const loaded = data.map(toDisplayProduct);
-      setProducts(loaded);
-      setSavedProducts(loaded); //need two copies to compare and 
-    }).catch((error) => console.error('Issue loading products: ', error));
-  }
-, []);
-
   async function loadTracking() {
     setTrackingLoading(true);
     try {
@@ -85,6 +76,21 @@ function ManagerPage() {
   } , [products, savedProducts]);
 
   const hasChanges = changedProducts.length > 0;
+
+  usePolling(() => {
+    getInventory().then((data) => {
+      const fresh = data.map(toDisplayProduct);
+      const editedIds = new Set(changedProducts.map((p) => p.id));
+      
+      const keepEdited = (current) => fresh.map((serverProduct) => editedIds.has(serverProduct.id) ? 
+        current.find((p) => p.id === serverProduct.id) ?? serverProduct :
+        serverProduct
+      );
+
+      setProducts(keepEdited);
+      setSavedProducts(keepEdited);
+    }).catch((error) => console.error("Issue loading products: ", error))
+  }, 2000, activeView === 'inventory');
  
   {/* the three functions below changes the stock, price, and units in the product object (not the database yet since we haven't hooked everything up*/}
   function changeStock(productId, amount) {
@@ -128,21 +134,26 @@ function ManagerPage() {
     const ok = window.confirm(`Save changes to ${changedProducts.length} product(s)?`);
     if (!ok) return;
 
-    try{
-      await Promise.all(
-        changedProducts.map((product) => 
-          updateProduct(product.id, {
-            quantity: product.stock,
-            unitPrice: Number(product.price),
-            unitWeight: Number(product.unit),
-            description: product.description,
-            imageUrl: product.imageUrl
-          })
-      )
+    const results = await Promise.allSettled(
+      changedProducts.map((product) => {
+        const saved = savedProducts.find((p) => p.id === product.id);
+        return updateProduct(product.id, {
+          quantityChange: product.stock - saved.stock,
+          unitPrice: Number(product.price),
+          unitWeight: Number(product.unit),
+          description: product.description,
+          imageUrl: product.imageUrl
+          });
+        })
       );
-      setSavedProducts(products);
-    } catch (error) {
-      alert('Save failed: ' + error.message);
+
+    const fresh = (await getInventory()).map(toDisplayProduct);
+    setProducts(fresh);
+    setSavedProducts(fresh);
+
+    const failed = results.filter((r) => r.status === 'rejected');
+    if (failed.length > 0) {
+      alert("the following saves had issues: \n" + failed.map((r) => r.reason.message).join('\n'));
     }
   }
   
