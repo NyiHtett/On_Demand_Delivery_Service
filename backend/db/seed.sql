@@ -9,15 +9,15 @@ INSERT INTO users (
     user_type
 )
 VALUES
-    ('Abe Jun, abe.jun@example.com', '5105554321',
+    ('Abe Jun', 'abe.jun@example.com', '5105554321',
      '44009 Osgood Rd, Fremont, CA 94539',
-      '$2a$10$MROHWY27yUHhbx1jRu1IXOSr9ilUJgbkEPCWylhHDNQ5kNpNeuLue','Employee')
-    ('Joel East, joel.east@example.com', '6505554321',
+      '$2a$10$MROHWY27yUHhbx1jRu1IXOSr9ilUJgbkEPCWylhHDNQ5kNpNeuLue','Employee'),
+    ('Joel East', 'joel.east@example.com', '6505554321',
      '777 Story Rd, San Jose, CA 95122',
-      '$2a$10$MROHWY27yUHhbx1jRu1IXOSr9ilUJgbkEPCWylhHDNQ5kNpNeuLue','Employee')
-    ('Po Li, po.li@example.com', '2095554321',
+      '$2a$10$MROHWY27yUHhbx1jRu1IXOSr9ilUJgbkEPCWylhHDNQ5kNpNeuLue','Employee'),
+    ('Po Li', 'po.li@example.com', '2095554321',
      '3010 W Grant Line Rd, Tracy, CA 95304',
-      '$2a$10$MROHWY27yUHhbx1jRu1IXOSr9ilUJgbkEPCWylhHDNQ5kNpNeuLue','Employee')
+      '$2a$10$MROHWY27yUHhbx1jRu1IXOSr9ilUJgbkEPCWylhHDNQ5kNpNeuLue','Employee'),
     -- extra customers at different addresses so robot batches have multi-stop routes
     ('Maria Lopez', 'maria.lopez@example.com', '14085550101',
      '777 The Alameda, San Jose, CA 95126',
@@ -25,7 +25,7 @@ VALUES
     ('Sam Patel', 'sam.patel@example.com', '14085550102',
      '1000 Lincoln Ave, San Jose, CA 95125',
      '$2a$10$MROHWY27yUHhbx1jRu1IXOSr9ilUJgbkEPCWylhHDNQ5kNpNeuLue', 'Customer'),
-    ('Leah Ni, leah.ni@example.com', '2095554321',
+    ('Leah Ni', 'leah.ni@example.com', '2095554321',
      '3010 W Grant Line Rd, Tracy, CA 95304',
       '$2a$10$MROHWY27yUHhbx1jRu1IXOSr9ilUJgbkEPCWylhHDNQ5kNpNeuLue','Customer')
 ON DUPLICATE KEY UPDATE
