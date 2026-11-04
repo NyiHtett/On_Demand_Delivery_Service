@@ -61,6 +61,12 @@ public class OrderService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "can't change status for orders that are shipping, completed, or cancelled"); //will protect in the frontend as well, but this is for safety
         }
 
+        boolean validMoves = (currentStatus.equals("Pending") && (newStatus.equals("Ordered") || newStatus.equals("Cancelled"))) || (currentStatus.equals("Ordered") && newStatus.equals("Cancelled"));
+
+        if (!validMoves) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "can't change order status from " + currentStatus + "  to " + newStatus);
+        }
+
         if (newStatus.equals("Cancelled")) {
             cancel(orderId, currentStatus);
             return;

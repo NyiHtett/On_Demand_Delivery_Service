@@ -46,6 +46,19 @@ public class ProductService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "price and weight have to be positive numbers");
         }
 
+        lengthCheck(req.description(), 1000, "description");
+        lengthCheck(req.imageUrl(), 5000, "image url");
+
+        //just going to limit the unit price at 10k for both the weight and the price, this seems reasonable in the context of a supermarket    
+        if (req.unitPrice().compareTo(new BigDecimal("10000")) > 0 || req.unitWeight().compareTo(new BigDecimal("10000")) > 0) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "price and weight exceed the allowed limit (10k)");
+        }
+
+        //will limit quantity change to 50k, seems more than enough for a single item
+        if (Math.abs(req.quantityChange()) > 50000) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "can't add/subtract 50k items");
+        }
+
         ProductResponse preupdate = getProduct(productId);
         String name = preupdate.name();
 
@@ -95,6 +108,18 @@ public class ProductService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "price and weight have to be positive numbers");
         }
 
+        lengthCheck(req.name().trim(), 200, "name");
+        lengthCheck(req.description(), 1000, "description");
+        lengthCheck(req.imageUrl(), 5000, "image url");
+
+        if (req.unitPrice().compareTo(new BigDecimal("10000")) > 0 || req.unitWeight().compareTo(new BigDecimal("10000")) > 0) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "price and weight exceed the allowed limit (10k)");
+        }
+
+        if (Math.abs(req.quantity()) > 50000) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "can't start with more than 50k items");
+        }
+
         long newId = productDao.createProduct(
             req.name().trim(),
             req.description(),
@@ -114,6 +139,7 @@ public class ProductService {
     public void deleteProduct(long productId) {
         ProductResponse product = getProduct(productId);
         inventoryUpdate(productId, product.name(), "Deleted", null, null, null, "deleted this product");
+        productDao.removeFromActiveCarts(productId);
         int deleteTest = productDao.deleteProduct(productId);
         if (deleteTest == 0) {
             throw new ApiException(HttpStatus.NOT_FOUND, "product can't be found");
@@ -131,5 +157,11 @@ public class ProductService {
     private void inventoryUpdate(long productId, String productName, String action, String field, Object oldVal, Object newVal, String description) {
         UserResponse user = currUser();
         inventoryUpdateDao.inventoryUpdate(productId, productName, user.id(), user.name(), action, field, Objects.toString(oldVal, null), Objects.toString(newVal, null), description);
+    }
+
+    private void lengthCheck(String string, int maxLength, String field) {
+        if (string != null && string.length()> maxLength) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, field + "'s max length exceeded, at most can be this many characters: " + maxLength);
+        }
     }
 }

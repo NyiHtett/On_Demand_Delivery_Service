@@ -8,6 +8,7 @@ import TrackingPanel from '../components/manager/TrackingPanel';
 import { getTracking } from '../services/trackingService';
 import Header from '../components/layout/Header';
 import usePolling from '../hooks/usePolling';
+import { getCurrentUser } from '../services/customerService';
  
 
 function toDisplayProduct(product) {
@@ -36,6 +37,11 @@ function ManagerPage() {
   const [trackingLoading, setTrackingLoading] = useState(false);
   const [trackingError, setTrackingError] = useState('');
   const [mapApiKey, setMapApiKey] = useState(() => localStorage.getItem('google_maps_api_key') || '');
+  const [isEmployee, setIsEmployee] = useState(false);
+
+  useEffect(() => {
+    getCurrentUser().then((user) => ((user.user_type.toLowerCase() === 'employee') ? setIsEmployee(true) : setIsEmployee(false))).catch(() => setIsEmployee(false));
+  }, [])
 
   async function loadTracking() {
     setTrackingLoading(true);
@@ -90,7 +96,7 @@ function ManagerPage() {
       setProducts(keepEdited);
       setSavedProducts(keepEdited);
     }).catch((error) => console.error("Issue loading products: ", error))
-  }, 2000, activeView === 'inventory');
+  }, 2000, activeView === 'inventory' && isEmployee);
  
   {/* the three functions below changes the stock, price, and units in the product object (not the database yet since we haven't hooked everything up*/}
   function changeStock(productId, amount) {
@@ -230,10 +236,16 @@ function ManagerPage() {
             <ProductSearch value={search} onChange={setSearch} onClear={() => setSearch('')} />
           </div>}
           
-      {activeView === 'inventory' && <CreateProductForm onCreate={handleCreateProduct} />}
+      {activeView === 'inventory' && isEmployee && <CreateProductForm onCreate={handleCreateProduct} />}
  
       {activeView === 'inventory' && <div className="mt-4">
-        {visibleProducts.length > 0 ? (
+        {
+        !isEmployee ? (
+          <p className="rounded-2xl border-2 border-dashed border-brand-green-100 p-8 text-center text-ink/75">
+            Sign in as an employee in order to see the products page and manage products.
+          </p>
+        ) : 
+        (visibleProducts.length > 0 ? (
           <ProductTable
             products={visibleProducts}
             onDecrease={(id) => changeStock(id, -1)}
@@ -249,7 +261,7 @@ function ManagerPage() {
           <p className="rounded-2xl border-2 border-dashed border-brand-green-100 p-8 text-center text-ink/75">
             No products match "{search.trim()}".
           </p>
-        )}
+        ))}
       </div>}
       </main>
     </div>
