@@ -3,9 +3,14 @@ import Header from '../layout/Header';
 import { useState } from 'react';
 import { loginUser, signUpUser } from '../../services/customerService';
 
-const NAME_PATTERN = /^[a-zA-Z\s'-]{2,40}$/;
-const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
-const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const NAME_PATTERN =
+  /^[a-zA-Z]([a-zA-Z\s'-]{0,148}[a-zA-Z])?$/;
+
+const EMAIL_PATTERN =
+  /^(?=.{1,150}$)(?=.{1,64}@)[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$/;
+  
+const PASSWORD_PATTERN =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,72}$/;
 
 function AuthForm({pageTitle}) {
   const navigate = useNavigate();

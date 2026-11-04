@@ -19,10 +19,13 @@ import com.example.demo.dto.AccountRequest;
 
 @Service
 public class UserService {
-    private static final String NAME_PATTERN = "^[a-zA-Z\s'-]{2,40}$";
-    private static final String EMAIL_PATTERN = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+    private static final String NAME_PATTERN =
+        "^[a-zA-Z]([a-zA-Z\\s'-]{0,148}[a-zA-Z])?$";
+    private static final String EMAIL_PATTERN =
+        "^(?=.{1,150}$)(?=.{1,64}@)[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$";
     private static final String PASSWORD_PATTERN =
-        "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d]).{8,}$";
+        "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d]).{8,72}$";
+        
     private final UserDao userDao;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
