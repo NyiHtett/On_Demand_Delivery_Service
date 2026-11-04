@@ -117,7 +117,7 @@ public class ProductService {
         }
 
         if (Math.abs(req.quantity()) > 50000) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "can't add/subtract 50k items");
+            throw new ApiException(HttpStatus.BAD_REQUEST, "can't start with more than 50k items");
         }
 
         long newId = productDao.createProduct(

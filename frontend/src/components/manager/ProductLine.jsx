@@ -70,7 +70,7 @@ function ProductLine({ product, onDecrease, onIncrease, onWeightChange, onPriceC
         </button>
         <input type="number" min="0" step="1" key = {product.stock} defaultValue={product.stock}
           onBlur={(event) => {
-            const stock = Math.max(0, Number(event.target.value || 0));
+            const stock = Math.max(0, Math.round(Number(event.target.value || 0)));
             event.target.value = stock;
             onStockChange(stock);
           }}
