@@ -71,4 +71,13 @@ class UserDaoTest {
           () -> userDao.signUpUser(name, email, password)
       );
     }
+
+    @Test
+    public void updateAccountExistingEmail() {
+        userDao.signUpUser("test-user", "unique@gmail.com", "TestP@ssw0rd");
+        UserResponse toEditUser = userDao.signUpUser("test-user", "test@gmail.com", "TestP@ssw0rd");
+        assertThrows(DuplicateKeyException.class, () -> userDao.updateAccount(toEditUser.id(), "test-user", "unique@gmail.com", "TestP@ssw0rd", null));
+        String email = jdbcTemplate.queryForObject("SELECT email FROM users WHERE user_id = ?", String.class, toEditUser.id());
+        assertEquals("test@gmail.com", email);
+    }
 }
