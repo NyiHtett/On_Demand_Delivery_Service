@@ -139,6 +139,7 @@ public class ProductService {
     public void deleteProduct(long productId) {
         ProductResponse product = getProduct(productId);
         inventoryUpdate(productId, product.name(), "Deleted", null, null, null, "deleted this product");
+        productDao.removeFromActiveCarts(productId);
         int deleteTest = productDao.deleteProduct(productId);
         if (deleteTest == 0) {
             throw new ApiException(HttpStatus.NOT_FOUND, "product can't be found");

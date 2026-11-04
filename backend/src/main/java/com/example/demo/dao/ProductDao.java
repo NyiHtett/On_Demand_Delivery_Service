@@ -101,4 +101,9 @@ public class ProductDao {
             amount, productId, amount
         );
     }
+
+    //fixing bug where can't remove deleted items from the user's cart
+    public int removeFromActiveCarts(long productId) {
+        return jdbcTemplate.update("DELETE from cart_items WHERE product_id = ? AND cart_id IN (SELECT cart_id FROM shopping_carts WHERE table_status = 'Active')", productId);
+    }
 }
