@@ -145,9 +145,11 @@ function AuthForm({pageTitle}) {
                   {errorMessage}
                 </p>
               )}
-              <button disabled={!isSubmitButtonEnabled}
-                      type="submit"
-                      className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl bg-brand-green-600 px-5 font-display font-bold text-white no-underline transition-colors hover:bg-brand-green-700 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-orange-400"
+              <button 
+                disabled={!isSubmitButtonEnabled}
+                type="submit"
+                className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl bg-brand-green-600 px-5 font-display font-bold text-white no-underline transition-colors hover:bg-brand-green-700 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-orange-400
+                          disabled:bg-brand-green-100 disabled:text-brand-green-600/60 disabled:cursor-not-allowed disabled:hover:bg-brand-green-100"
               >
                 {pageTitle}
               </button>
