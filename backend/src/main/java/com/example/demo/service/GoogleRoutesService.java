@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -19,23 +20,31 @@ import java.util.List;
 
 @Service
 public class GoogleRoutesService {
-    private static final String ROUTES_URL = "https://routes.googleapis.com/directions/v2:computeRoutes";
+    private static final String DEFAULT_ROUTES_URL = "https://routes.googleapis.com/directions/v2:computeRoutes";
 
     private final String apiKey;
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
+    private final String routesUrl;
     // Last key an employee entered on the tracking page; lets the robot dispatcher draw routes
     // when GOOGLE_MAPS_API_KEY isn't set on the server.
     private volatile String rememberedApiKey = "";
     // Why the most recent route request failed (null after a success), shown on the tracking page.
     private volatile String lastError;
 
+    // spring uses this one; the other constructor is for tests
+    @Autowired
     public GoogleRoutesService(
         @Value("${google.maps.api-key:}") String apiKey
     ) {
+        this(apiKey, HttpClient.newHttpClient(), DEFAULT_ROUTES_URL);
+    }
+
+    GoogleRoutesService(String apiKey, HttpClient httpClient, String routesUrl) {
         this.apiKey = apiKey == null ? "" : apiKey.trim();
         this.objectMapper = new ObjectMapper();
-        this.httpClient = HttpClient.newHttpClient();
+        this.httpClient = httpClient;
+        this.routesUrl = routesUrl;
     }
 
     public void rememberApiKey(String requestApiKey) {
@@ -84,7 +93,7 @@ public class GoogleRoutesService {
             requestBody.put("polylineQuality", "OVERVIEW");
             requestBody.put("polylineEncoding", "ENCODED_POLYLINE");
 
-            HttpRequest request = HttpRequest.newBuilder(URI.create(ROUTES_URL))
+            HttpRequest request = HttpRequest.newBuilder(URI.create(routesUrl))
                 .header("Content-Type", "application/json")
                 .header("X-Goog-Api-Key", routeApiKey)
                 .header("X-Goog-FieldMask", "routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline,routes.optimizedIntermediateWaypointIndex,routes.legs.endLocation,routes.legs.duration")
