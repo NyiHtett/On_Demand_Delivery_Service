@@ -46,11 +46,11 @@ INSERT INTO payment_methods (
 )
 VALUES
     ('1234567891011121', '123', '2028-12-30', 'Visa',
-     'Anthony Kieu', 'One Washington Square, San Jose, CA 95192'),
+     'Maria Lopez', '777 The Alameda, San Jose, CA 95126'),
     ('5555555555554444', '456', '2029-03-31', 'Mastercard',
-     'Nyi Htet', 'One Washington Square, San Jose, CA 95192'),
+     'Sam Patel', '1000 Lincoln Ave, San Jose, CA 95125'),
     ('378282246310005', '789', '2027-11-30', 'American Express',
-     'Johnathan Aye', 'One Washington Square, San Jose, CA 95192')
+     'Leah Ni', '3010 W Grant Line Rd, Tracy, CA 95304')
 ON DUPLICATE KEY UPDATE
     security_pin = VALUES(security_pin),
     expiration_date = VALUES(expiration_date),
@@ -63,7 +63,7 @@ ON DUPLICATE KEY UPDATE
 INSERT IGNORE INTO user_payment_methods (user_id, card_number)
 SELECT user_id, '1234567891011121'
 FROM users
-WHERE email = 'anthony.k.130550@gmail.com';
+WHERE email = 'maria.lopez@example.com';
 
 
 INSERT INTO products (
@@ -99,23 +99,23 @@ ON DUPLICATE KEY UPDATE
     image_url = VALUES(image_url),
     quantity = VALUES(quantity);
 
--- Anthony's current (Active) cart, so the cart page has something in it.
+-- Maria's current (Active) cart, so the cart page has something in it.
 INSERT INTO shopping_carts (cart_id, customer_id, table_status)
-VALUES (1, 1, 'Active');
+VALUES (1, 4, 'Active');
 
 INSERT INTO cart_items (cart_id, product_id, product_name, unit_weight, unit_price, quantity)
 VALUES (1, 1, 'Apple', 0.400, 1.00, 3),
     (1, 2, 'Carrot', 0.220, 1.40, 2);
 
--- Two past (Completed) orders for Anthony. Each order has its own cart because
+-- Two past (Completed) orders for Maria. Each order has its own cart because
 -- orders.cart_id is UNIQUE; an Active cart must never already have an order.
 INSERT INTO shopping_carts (cart_id, customer_id, table_status)
-VALUES (2, 1, 'Completed'),
-    (3, 1, 'Completed');
+VALUES (2, 4, 'Completed'),
+    (3, 4, 'Completed');
 
 INSERT INTO orders (order_id, customer_id, cart_id, order_status, delivery_address, subtotal, delivery_fee, total_weight, paid_at)
-VALUES (1, 1, 3, 'Completed', 'One Washington Square, San Jose, CA 95192', 22.03, 0, 13.601, NOW()),
-    (2, 1, 2, 'Completed', 'One Washington Square, San Jose, CA 95192', 7.45, 0, 2.300, NOW());
+VALUES (1, 4, 3, 'Completed', 'One Washington Square, San Jose, CA 95192', 22.03, 0, 13.601, NOW()),
+    (2, 4, 2, 'Completed', 'One Washington Square, San Jose, CA 95192', 7.45, 0, 2.300, NOW());
 
 INSERT INTO order_items (order_id, product_id, product_name, unit_weight, unit_price, quantity)
 VALUES (1, 1, 'Apple', 0.400, 1.00, 5),
