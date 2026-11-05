@@ -99,23 +99,27 @@ ON DUPLICATE KEY UPDATE
     image_url = VALUES(image_url),
     quantity = VALUES(quantity);
 
--- Anthony's current (Active) cart, so the cart page has something in it.
+-- Sample cart and order history belong to customer Maria Lopez (looked up by email,
+-- so reordering the users above can't hand them to an employee).
+SET @maria = (SELECT user_id FROM users WHERE email = 'maria.lopez@example.com');
+
+-- Maria's current (Active) cart, so the cart page has something in it.
 INSERT INTO shopping_carts (cart_id, customer_id, table_status)
-VALUES (1, 1, 'Active');
+VALUES (1, @maria, 'Active');
 
 INSERT INTO cart_items (cart_id, product_id, product_name, unit_weight, unit_price, quantity)
 VALUES (1, 1, 'Apple', 0.400, 1.00, 3),
     (1, 2, 'Carrot', 0.220, 1.40, 2);
 
--- Two past (Completed) orders for Anthony. Each order has its own cart because
+-- Two past (Completed) orders for Maria. Each order has its own cart because
 -- orders.cart_id is UNIQUE; an Active cart must never already have an order.
 INSERT INTO shopping_carts (cart_id, customer_id, table_status)
-VALUES (2, 1, 'Completed'),
-    (3, 1, 'Completed');
+VALUES (2, @maria, 'Completed'),
+    (3, @maria, 'Completed');
 
 INSERT INTO orders (order_id, customer_id, cart_id, order_status, delivery_address, subtotal, delivery_fee, total_weight, paid_at)
-VALUES (1, 1, 3, 'Completed', 'One Washington Square, San Jose, CA 95192', 22.03, 0, 13.601, NOW()),
-    (2, 1, 2, 'Completed', 'One Washington Square, San Jose, CA 95192', 7.45, 0, 2.300, NOW());
+VALUES (1, @maria, 3, 'Completed', '777 The Alameda, San Jose, CA 95126', 22.03, 0, 13.601, NOW()),
+    (2, @maria, 2, 'Completed', '777 The Alameda, San Jose, CA 95126', 7.45, 0, 2.300, NOW());
 
 INSERT INTO order_items (order_id, product_id, product_name, unit_weight, unit_price, quantity)
 VALUES (1, 1, 'Apple', 0.400, 1.00, 5),
