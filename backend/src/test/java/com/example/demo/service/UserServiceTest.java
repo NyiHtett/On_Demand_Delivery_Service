@@ -80,7 +80,7 @@ public class UserServiceTest {
 
   @Test 
   public void signUpRejectsTooShortName() {
-    String name = "a";
+    String name = "";
     String email = "test@gmail.com";
     String password = "TestP@ssw0rd";
 
@@ -94,7 +94,7 @@ public class UserServiceTest {
 
   @Test 
   public void signUpRejectsTooLongName() {
-    String name = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    String name = "a".repeat(151);
     String email = "test@gmail.com";
     String password = "TestP@ssw0rd";
 

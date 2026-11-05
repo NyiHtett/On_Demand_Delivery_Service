@@ -32,11 +32,11 @@ public class OrderServiceTest{
 
     @Test
     public void updateSavesValidChange() {
-        when(orderDao.getOrderStatus(1L)).thenReturn("Ordered");
+        when(orderDao.getOrderStatus(1L)).thenReturn("Pending");
 
-        orderService.updateOrderStatus(1L, new UpdateOrderStatusRequest("Shipping"));
+        orderService.updateOrderStatus(1L, new UpdateOrderStatusRequest("Ordered"));
 
-        verify(orderDao).updateOrderStatus(1L, "Shipping");
+        verify(orderDao).updateOrderStatus(1L, "Ordered");
     }
 
     @Test
