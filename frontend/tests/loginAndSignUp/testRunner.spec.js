@@ -1,26 +1,36 @@
 import { test } from '@playwright/test';
 import { readFileSync } from 'fs';
-import { runLogIn_FollowingSignUpTest } from './loginFlow.js';
+import { runLogIn_FollowingSignUpTest, runLogIn_OnlyTest } from './loginFlow.js';
 
-const scenarios = JSON.parse(
+const loginAndSignUpScenarios = JSON.parse(
   readFileSync(
     new URL('../data/loginAndSignUpScenarios.json', import.meta.url)
     , 'utf-8'));
 
-test.describe.configure({ mode: 'serial' });
+const loginOnlyScenarios = JSON.parse(
+  readFileSync(
+    new URL('../data/loginOnlyScenarios.json', import.meta.url)
+    , 'utf-8'));
 
 const debugging = false;
-if (debugging) {
-  test.use({
-    launchOptions: {
-      slowMo: 1500, // 1.5-second delay for tests in this file
-    },
-  });
-}
+test.use({
+  launchOptions: {
+    headless: false,
+    slowMo: debugging ? 2000 : 0, //1.5 second delay for tests in this file
+  },
+});
 
-for (const scenario of scenarios) {
+
+for (const scenario of loginAndSignUpScenarios) {
   test(`Successful Sign Up And Login — ${scenario.role}`, async ({ page }, testInfo) => {
     test.setTimeout(100_000);
     await runLogIn_FollowingSignUpTest(page, testInfo, { ...scenario, submit: false });
+  });
+}
+
+for (const scenario of loginOnlyScenarios) {
+  test(`Successful Login Only — ${scenario.role}`, async ({ page }, testInfo) => {
+    test.setTimeout(100_000);
+    await runLogIn_OnlyTest(page, testInfo, { ...scenario, submit: false });
   });
 }

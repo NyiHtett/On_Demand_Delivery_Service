@@ -19,6 +19,9 @@ async function submitSignUp(page, scenario, uniqueEmail, shouldSucceed) {
     const response = await signUpResponse;
     expect(response.ok()).toBe(shouldSucceed);
 
+    await expect(
+      page.getByText(`${scenario.name}· ${scenario.userType}`),
+    ).toBeVisible();
     await page.getByRole('link', { name: 'Open account' }).click();
     await expect(page.getByRole('textbox', { name: 'name', exact: true })).toHaveValue(scenario.name);
     await expect(page.getByRole('textbox', { name: 'email' })).toHaveValue(uniqueEmail);
