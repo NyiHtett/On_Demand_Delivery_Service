@@ -34,6 +34,7 @@ async function loginFlow(page, scenario, success) {
       await loginResponse;
 
       await page.getByText(scenario.name + '· ' + scenario.userType).waitFor({ state: 'visible' }); 
+      await page.getByRole('link', { name: 'Open account' }).click();
       await expect(page.getByRole('textbox', { name: 'name', exact: true })).toHaveValue(scenario.name);
       await expect(page.getByRole('textbox', { name: 'email' })).toHaveValue(scenario.email);
       logPass("Login Successful! Role: " + scenario.role);
