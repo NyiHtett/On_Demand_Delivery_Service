@@ -1,0 +1,47 @@
+[
+  {
+    "role": "Valid Product",
+    "name": "Test Product",
+    "unitPrice": 1,
+    "unitWeight": 1,
+    "quantity":  1,
+    "description": "This is a test product.",
+    "imageUrl":  ""
+  },
+  {
+    "role": "Invalid Price Product",
+    "name": "Test Product",
+    "unitPrice": 0,
+    "unitWeight": 1,
+    "quantity":  1,
+    "description": "This is a test product.",
+    "imageUrl":  ""
+  },
+  {
+    "role": "Invalid Weight Product",
+    "name": "Test Product",
+    "unitPrice": 1,
+    "unitWeight": 0,
+    "quantity":  1,
+    "description": "This is a test product.",
+    "imageUrl":  ""
+  },
+  {
+    "role": "Invalid Quantity Product",
+    "name": "Test Product",
+    "unitPrice": 1,
+    "unitWeight": 1,
+    "quantity":  -1,
+    "description": "This is a test product.",
+    "imageUrl":  ""
+  },
+  {
+    "role": "Duplicate Product",
+    "name": "Test Product",
+    "unitPrice": 1,
+    "unitWeight": 1,
+    "quantity":  1,
+    "description": "This is a test product.",
+    "imageUrl":  ""
+  }
+]
