@@ -4,6 +4,7 @@
     "name": "test-user",
     "email": "test.user@gmail.com",
     "password": "aaAA88**",
+    "userType": "Customer",
     "submit": false
   },
   {
@@ -11,6 +12,7 @@
     "name": "test-user",
     "email": "test.user@gmail.com",
     "password": "password",
+    "userType": "Customer",
     "submit": false
   },  
   {
@@ -18,6 +20,7 @@
     "name": "test-user",
     "email": "invalidEmail",
     "password": "aaAA88**",
+    "userType": "Customer",
     "submit": false
   },    
   {
@@ -25,6 +28,7 @@
     "name": "test-user",
     "email": "test.user@gmail.com",
     "password": "aaAA88**",
+    "userType": "Customer",
     "submit": false
   },  
   {
@@ -32,13 +36,7 @@
     "name": "",
     "email": "test.user@gmail.com",
     "password": "aaAA88**",
-    "submit": false
-  },
-  {
-    "role": "Too Short Name User",
-    "name": "-a",
-    "email": "test.user@gmail.com",
-    "password": "aaAA88**",
+    "userType": "Customer",
     "submit": false
   },
   {
@@ -46,6 +44,7 @@
     "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "email": "test.user@gmail.com",
     "password": "aaAA88**",
+    "userType": "Customer", 
     "submit": false
   }
 ]

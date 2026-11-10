@@ -46,11 +46,11 @@ INSERT INTO payment_methods (
 )
 VALUES
     ('1234567891011121', '123', '2028-12-30', 'Visa',
-     'Anthony Kieu', 'One Washington Square, San Jose, CA 95192'),
+     'Maria Lopez', '777 The Alameda, San Jose, CA 95126'),
     ('5555555555554444', '456', '2029-03-31', 'Mastercard',
-     'Nyi Htet', 'One Washington Square, San Jose, CA 95192'),
+     'Sam Patel', '1000 Lincoln Ave, San Jose, CA 95125'),
     ('378282246310005', '789', '2027-11-30', 'American Express',
-     'Johnathan Aye', 'One Washington Square, San Jose, CA 95192')
+     'Leah Ni', '3010 W Grant Line Rd, Tracy, CA 95304')
 ON DUPLICATE KEY UPDATE
     security_pin = VALUES(security_pin),
     expiration_date = VALUES(expiration_date),
@@ -63,7 +63,7 @@ ON DUPLICATE KEY UPDATE
 INSERT IGNORE INTO user_payment_methods (user_id, card_number)
 SELECT user_id, '1234567891011121'
 FROM users
-WHERE email = 'anthony.k.130550@gmail.com';
+WHERE email = 'maria.lopez@example.com';
 
 
 INSERT INTO products (
