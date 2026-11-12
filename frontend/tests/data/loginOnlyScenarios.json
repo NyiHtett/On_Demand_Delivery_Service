@@ -1,0 +1,26 @@
+[
+  {
+    "role": "Existing Employee",
+    "name": "Abe Jun",
+    "email": "abe.jun@example.com",
+    "password": "P@ssw0rd!",
+    "userType": "Employee",
+    "submit": false
+  },
+  {
+    "role": "Existing Customer",
+    "name": "Maria Lopez",
+    "email": "maria.lopez@example.com",
+    "password": "P@ssw0rd!",
+    "userType": "Customer",
+    "submit": false
+  },  
+  {
+    "role": "Nonexisting User",
+    "name": "Nonexisting User",
+    "email": "nonexistingemail@gmail.com",
+    "password": "P@ssw0rd!",
+    "userType": "Customer",
+    "submit": false
+  }
+]

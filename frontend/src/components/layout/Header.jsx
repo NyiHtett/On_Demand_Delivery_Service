@@ -11,16 +11,21 @@ function countItems(cart) {
 function Header({ showCart = false }) {
   const location = useLocation();
   const [userIdentity, setUserIdentity] = useState({ name: 'Guest', status: '', canManage: false });
+  const [hasResolvedUser, setHasResolvedUser] = useState(
+    () => !localStorage.getItem(API_TOKEN_KEY),
+  );
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const isManagerView = location.pathname === '/manager';
-  const isGuest = userIdentity.name === 'Guest' && !userIdentity.status;
+  const isGuest =
+    hasResolvedUser && userIdentity.name === 'Guest' && !userIdentity.status;
 
   useEffect(() => {
     let isCurrent = true;
 
     async function loadUserLabel() {
       if (!localStorage.getItem(API_TOKEN_KEY)) {
+        setHasResolvedUser(true);
         return;
       }
 
@@ -39,6 +44,8 @@ function Header({ showCart = false }) {
       } catch {
         // A missing or expired token should appear as a guest in the navbar.
         if (isCurrent) setUserIdentity({ name: 'Guest', status: '', canManage: false });
+      } finally {
+        if (isCurrent) setHasResolvedUser(true);
       }
     }
 

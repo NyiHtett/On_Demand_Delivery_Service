@@ -38,7 +38,7 @@ ROBOT_QUEUE_UNIT_SECONDS=10        # demo speed: robot timer counts 10 s "minute
 ROBOT_TIME_SCALE=20                # demo speed: robots drive 20x faster (default 1)
 ```
 
-Stripe test card: `4242 4242 4242 4242`, any future expiry, any CVC. Seed logins (password `P@ssw0rd!`): customers `anthony.k.130550@gmail.com`, `maria.lopez@example.com`, `sam.patel@example.com`; employees `nyi.htet@sjsu.edu`, `johnathan.aye@sjsu.edu`.
+Stripe test card: `4242 4242 4242 4242`, any future expiry, any CVC. Seed logins (password `P@ssw0rd!`): customers `maria.lopez@example.com` (has a sample cart and order history), `sam.patel@example.com`, `leah.ni@example.com`; employees `abe.jun@example.com`, `joel.east@example.com`, `po.li@example.com`.
 
 The manual steps below still work if you prefer them.
 

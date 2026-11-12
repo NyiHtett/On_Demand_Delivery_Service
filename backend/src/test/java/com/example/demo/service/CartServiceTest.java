@@ -89,4 +89,27 @@ public class CartServiceTest {
 
         verify(cartDao).deleteItem(5L, 7L);
     }
+
+    @Test
+    public void updateItemRejectsMoreThanInStock() {
+        when(cartDao.containsActiveCart(1L)).thenReturn(true);
+        when(cartDao.getUserCartID(1L)).thenReturn(5L);
+        when(cartDao.getItemQuantity(5L, 7L)).thenReturn(2);
+        when(productDao.getProduct(7L)).thenReturn(Optional.of(milk(40)));
+
+        ApiException error = assertThrows(ApiException.class, () -> cartService.updateItem(1L, 7L, 41));
+
+        assertEquals(org.springframework.http.HttpStatus.CONFLICT, error.getStatus());
+    }
+
+    @Test
+    public void updateItemNotInCartIsNotFound() {
+        when(cartDao.containsActiveCart(1L)).thenReturn(true);
+        when(cartDao.getUserCartID(1L)).thenReturn(5L);
+        when(cartDao.getItemQuantity(5L, 7L)).thenReturn(0);
+
+        ApiException error = assertThrows(ApiException.class, () -> cartService.updateItem(1L, 7L, 3));
+
+        assertEquals(org.springframework.http.HttpStatus.NOT_FOUND, error.getStatus());
+    }
 }
