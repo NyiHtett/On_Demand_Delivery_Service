@@ -44,3 +44,6 @@ build/
 
 # Local Codex/project context; do not commit or push.
 LOCAL_PROJECT_CONTEXT.md
+
+# Local Git workflow helper; do not commit or push.
+/scripts/UMCB
