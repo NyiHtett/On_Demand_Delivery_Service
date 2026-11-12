@@ -40,142 +40,112 @@ ROBOT_TIME_SCALE=20                # demo speed: robots drive 20x faster (defaul
 
 Stripe test card: `4242 4242 4242 4242`, any future expiry, any CVC. Seed logins (password `P@ssw0rd!`): customers `maria.lopez@example.com` (has a sample cart and order history), `sam.patel@example.com`, `leah.ni@example.com`; employees `abe.jun@example.com`, `joel.east@example.com`, `po.li@example.com`.
 
-The manual steps below still work if you prefer them.
+## User's Guide
 
-## Running the Project
+### Prerequisites
 
-### 1. Start Docker Desktop
+Install and start:
 
-Make sure Docker Desktop is open before running the following commands.
+- Docker Desktop
+- Node.js and npm
+- Java 17 or later
 
-### 2. Start the MySQL Container
+### Start the Application
 
-From the project directory, run:
-
-```bash
-docker compose up -d
-```
-
-The `-d` option runs the MySQL container in the background.
-
-Check whether the container is running:
+From the project root, run:
 
 ```bash
-docker compose ps
+npm install
+npm run dev
 ```
 
-View the MySQL startup logs:
+`npm run dev` automatically:
 
-```bash
-docker compose logs mysql
-```
+1. Starts MySQL with Docker Compose.
+2. Waits for MySQL to become available.
+3. Resets the database using `backend/db/schema.sql` and `backend/db/seed.sql`.
+4. Installs frontend dependencies if needed.
+5. Starts the Spring Boot backend.
+6. Starts the React frontend.
 
-Wait until the logs show:
+Open the application at:
 
 ```text
-ready for connections
+http://localhost:5173
 ```
 
-### 3. Access the MySQL Database
-
-Enter the MySQL command-line client:
-
-```bash
-docker compose exec mysql mysql -u delivery_user -p on_demand_delivery_db
-```
-
-When prompted for the password, enter:
-
-```text
-delivery_password
-```
-
-After logging in, you should see:
-
-```text
-mysql>
-```
-
-You can now execute SQL commands, such as:
-
-```sql
-SHOW TABLES;
-```
-
-To leave MySQL:
-
-```sql
-exit;
-```
-
-### 4. Start the Spring Boot Application
-
-Give the Maven wrapper permission to run. This command only needs to be executed once:
-
-```bash
-cd backend
-chmod u+x mvnw
-```
-
-Start the Spring Boot application:
-
-```bash
-./mvnw spring-boot:run
-```
-
-The backend will run at:
+The backend API runs at:
 
 ```text
 http://localhost:8080
 ```
 
-### 5. Start the React Frontend
+The first startup may take a few minutes while dependencies and services are prepared.
+
+### Preserve Existing Database Data
+
+By default, `npm run dev` resets the database. To keep the existing database data, run:
 
 ```bash
-cd ..
-cd frontend
-npm install
-npm run dev
+npm run dev -- --keep-db
 ```
 
-## Recommended Startup Order
+### Demo Accounts
+
+All seeded accounts use the password:
 
 ```text
-1. Open Docker Desktop
-2. Start MySQL with Docker Compose
-3. Check the MySQL container
-4. Start the Spring Boot application
-5. Start the React Frontend
+P@ssw0rd!
 ```
 
-Commands:
+Customer accounts:
+
+- `maria.lopez@example.com`
+- `sam.patel@example.com`
+- `leah.ni@example.com`
+
+Employee accounts:
+
+- `abe.jun@example.com`
+- `joel.east@example.com`
+- `po.li@example.com`
+
+### Environment Settings
+
+Optional settings can be added to a `.env` file in the project root:
 
 ```bash
-docker compose up -d
-docker compose ps
-cd backend
-./mvnw spring-boot:run
-cd ..
-cd frontend
-npm install
-npm run dev
+STRIPE_SECRET_KEY=sk_test_...
+GOOGLE_MAPS_API_KEY=...
+ROBOT_QUEUE_UNIT_SECONDS=10
+ROBOT_TIME_SCALE=20
 ```
 
-## Stopping the Project
+The `.env` file is ignored by Git and should never contain production credentials.
 
-Stop Spring Boot by pressing:
+### Stop the Application
+
+Press:
 
 ```text
 Ctrl + C
 ```
 
-Stop the MySQL container:
+This stops the backend and frontend. MySQL continues running in Docker.
+
+To stop MySQL as well, run:
 
 ```bash
 docker compose down
 ```
 
-The MySQL data is preserved in the Docker volume unless the volume is manually deleted.
+### Reset Only the Database
+
+To start MySQL and reseed the database without starting the backend or frontend:
+
+```bash
+npm run db:reset
+```
 
 > The usernames and passwords in this document are for local development only. Do not use these credentials in production.
 
@@ -252,4 +222,3 @@ npx playwright test --headed
 cd frontend
 npx playwright show-report
 ```
-
