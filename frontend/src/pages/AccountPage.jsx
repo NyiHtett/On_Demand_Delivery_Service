@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import AccountForm from '../components/account/AccountForm';
 import PaymentMethod from '../components/account/PaymentMethod';
@@ -6,6 +7,12 @@ import {
   getCurrentUser,
   updateCurrentUser,
 } from '../services/customerService';
+import {
+  confirmPaymentMethodSetup,
+  createPaymentMethodSetupSession,
+  deletePaymentMethod,
+  getPaymentMethods,
+} from '../services/paymentMethodService';
 
 function toProfile(account) {
   return {
@@ -23,50 +30,31 @@ function AccountPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [profileError, setProfileError] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
   const activeRole = profile?.userType?.toLowerCase();
-
-  const paymentMethodsByRole = {
-    customer: [
-      {
-        id: 1,
-        cardType: 'Visa',
-        lastFour: '1121',
-        billingName: 'Customer Joe',
-        expirationDate: '2028-12',
-      },
-    ],
-  };
-
-  const [paymentMethods, setPaymentMethods] = useState(
-    paymentMethodsByRole[activeRole] || [],
-  );
+  const [paymentMethods, setPaymentMethods] = useState([]);
 
   const [profileMessage, setProfileMessage] = useState('');
   const [paymentMessage, setPaymentMessage] = useState('');
-  const [editingPaymentId, setEditingPaymentId] = useState(null);
-
-  const [paymentForm, setPaymentForm] = useState({
-    cardNumber: '',
-    cardType: 'Visa',
-    billingName: '',
-    expirationDate: '',
-  });
-
   useEffect(() => {
     let isCurrent = true;
 
     async function loadAccount() {
       try {
+        const setupSessionId = searchParams.get('session_id');
+        if (searchParams.get('payment_method_setup') === 'success' && setupSessionId) {
+          await confirmPaymentMethodSetup(setupSessionId);
+          setPaymentMessage('Payment method added.');
+          setSearchParams({}, { replace: true });
+        }
         const account = await getCurrentUser();
         if (!isCurrent) return;
 
         const nextProfile = toProfile(account);
         setProfile(nextProfile);
-        setPaymentMethods(paymentMethodsByRole[nextProfile.userType.toLowerCase()] || []);
-        setPaymentForm((currentPayment) => ({
-          ...currentPayment,
-          billingName: nextProfile.name,
-        }));
+        setPaymentMethods(nextProfile.userType.toLowerCase() === 'customer'
+          ? await getPaymentMethods()
+          : []);
       } catch (error) {
         if (isCurrent) {
           setProfileError(
@@ -84,7 +72,7 @@ function AccountPage() {
     return () => {
       isCurrent = false;
     };
-  }, []);
+  }, [searchParams, setSearchParams]);
 
   function handleProfileChange(event) {
     const { name, value } = event.target;
@@ -118,95 +106,24 @@ function AccountPage() {
     }
   }
 
-  function handlePaymentChange(event) {
-    const { name, value } = event.target;
-
-    setPaymentForm((currentPayment) => ({
-      ...currentPayment,
-      [name]: value,
-    }));
-
-    setPaymentMessage('');
-  }
-
-  function resetPaymentForm() {
-    setPaymentForm({
-      cardNumber: '',
-      cardType: 'Visa',
-      billingName: profile.name,
-      expirationDate: '',
-    });
-
-    setEditingPaymentId(null);
-  }
-
-  function handlePaymentSubmit(event) {
-    event.preventDefault();
-
-    if (!paymentForm.billingName || !paymentForm.expirationDate) {
-      setPaymentMessage('Please complete all payment fields.');
-      return;
+  async function handleAddPaymentMethod() {
+    setPaymentMessage('opening secure payment setup…');
+    try {
+      const { url } = await createPaymentMethodSetupSession();
+      window.location.assign(url);
+    } catch (error) {
+      setPaymentMessage(error instanceof Error ? error.message : 'Unable to add payment method.');
     }
-
-    if (!editingPaymentId && paymentForm.cardNumber.length < 4) {
-      setPaymentMessage('Please enter a valid card number.');
-      return;
-    }
-
-    if (editingPaymentId) {
-      setPaymentMethods((currentPayments) =>
-        currentPayments.map((payment) =>
-          payment.id === editingPaymentId
-            ? {
-                ...payment,
-                cardType: paymentForm.cardType,
-                billingName: paymentForm.billingName,
-                expirationDate: paymentForm.expirationDate,
-              }
-            : payment,
-        ),
-      );
-
-      setPaymentMessage('Payment method updated.');
-    } else {
-      const cleanCardNumber = paymentForm.cardNumber.replace(/\D/g, '');
-
-      setPaymentMethods((currentPayments) => [
-        ...currentPayments,
-        {
-          id: Date.now(),
-          cardType: paymentForm.cardType,
-          lastFour: cleanCardNumber.slice(-4),
-          billingName: paymentForm.billingName,
-          expirationDate: paymentForm.expirationDate,
-        },
-      ]);
-
-      setPaymentMessage('Payment method added.');
-    }
-
-    resetPaymentForm();
   }
 
-  function handleEditPayment(payment) {
-    setEditingPaymentId(payment.id);
-
-    setPaymentForm({
-      cardNumber: '',
-      cardType: payment.cardType,
-      billingName: payment.billingName,
-      expirationDate: payment.expirationDate,
-    });
-
-    setPaymentMessage('');
-  }
-
-  function handleDeletePayment(paymentId) {
-    setPaymentMethods((currentPayments) =>
-      currentPayments.filter((payment) => payment.id !== paymentId),
-    );
-
-    setPaymentMessage('Payment method deleted.');
+  async function handleDeletePayment(paymentId) {
+    try {
+      await deletePaymentMethod(paymentId);
+      setPaymentMethods((currentPayments) => currentPayments.filter((payment) => payment.id !== paymentId));
+      setPaymentMessage('Payment method deleted.');
+    } catch (error) {
+      setPaymentMessage(error instanceof Error ? error.message : 'Unable to delete payment method.');
+    }
   }
 
   if (isLoading) {
@@ -289,138 +206,26 @@ function AccountPage() {
                     <PaymentMethod
                       key={payment.id}
                       payment={payment}
-                      onEdit={handleEditPayment}
                       onDelete={handleDeletePayment}
                     />
                   ))
                 )}
               </div>
 
-              <form
-                onSubmit={handlePaymentSubmit}
-                className="mt-6 border-t-2 border-brand-green-100 pt-6"
-              >
-                <h3 className="mb-4 font-display text-xl font-black text-ink">
-                  {editingPaymentId
-                    ? 'edit payment method'
-                    : 'add payment method'}
-                </h3>
-
-                <div className="grid gap-5 sm:grid-cols-2">
-                  {!editingPaymentId && (
-                    <div className="sm:col-span-2">
-                      <label
-                        htmlFor="card-number"
-                        className="mb-2 block font-display text-sm font-bold uppercase tracking-wide text-ink/70"
-                      >
-                        card number
-                      </label>
-
-                      <input
-                        id="card-number"
-                        name="cardNumber"
-                        type="text"
-                        inputMode="numeric"
-                        value={paymentForm.cardNumber}
-                        onChange={handlePaymentChange}
-                        placeholder="Enter card number"
-                        className="min-h-12 w-full rounded-xl border-2 border-brand-green-100 bg-brand-green-50 px-4 text-ink outline-none focus:border-brand-green-600"
-                      />
-                    </div>
-                  )}
-
-                  <div>
-                    <label
-                      htmlFor="card-type"
-                      className="mb-2 block font-display text-sm font-bold uppercase tracking-wide text-ink/70"
-                    >
-                      card type
-                    </label>
-
-                    <select
-                      id="card-type"
-                      name="cardType"
-                      value={paymentForm.cardType}
-                      onChange={handlePaymentChange}
-                      className="min-h-12 w-full rounded-xl border-2 border-brand-green-100 bg-brand-green-50 px-4 text-ink outline-none focus:border-brand-green-600"
-                    >
-                      <option value="Visa">Visa</option>
-                      <option value="Mastercard">Mastercard</option>
-                      <option value="American Express">
-                        American Express
-                      </option>
-                      <option value="Discover">Discover</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="expiration-date"
-                      className="mb-2 block font-display text-sm font-bold uppercase tracking-wide text-ink/70"
-                    >
-                      expiration date
-                    </label>
-
-                    <input
-                      id="expiration-date"
-                      name="expirationDate"
-                      type="month"
-                      value={paymentForm.expirationDate}
-                      onChange={handlePaymentChange}
-                      required
-                      className="min-h-12 w-full rounded-xl border-2 border-brand-green-100 bg-brand-green-50 px-4 text-ink outline-none focus:border-brand-green-600"
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label
-                      htmlFor="billing-name"
-                      className="mb-2 block font-display text-sm font-bold uppercase tracking-wide text-ink/70"
-                    >
-                      billing name
-                    </label>
-
-                    <input
-                      id="billing-name"
-                      name="billingName"
-                      type="text"
-                      value={paymentForm.billingName}
-                      onChange={handlePaymentChange}
-                      required
-                      className="min-h-12 w-full rounded-xl border-2 border-brand-green-100 bg-brand-green-50 px-4 text-ink outline-none focus:border-brand-green-600"
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <button
-                    type="submit"
-                    className="min-h-12 rounded-xl bg-brand-green-600 px-6 font-display font-bold text-white transition-colors hover:bg-brand-green-700 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-orange-400"
-                  >
-                    {editingPaymentId
-                      ? 'save payment method'
-                      : 'add payment method'}
-                  </button>
-
-                  {editingPaymentId && (
-                    <button
-                      type="button"
-                      onClick={resetPaymentForm}
-                      className="min-h-12 rounded-xl border-2 border-brand-green-600 px-6 font-display font-bold text-brand-green-700 transition-colors hover:bg-brand-green-50"
-                    >
-                      cancel
-                    </button>
-                  )}
-
-                  {paymentMessage && (
-                    <p className="text-sm font-bold text-brand-green-700">
-                      {paymentMessage}
-                    </p>
-                  )}
-                </div>
-              </form>
-
-               
+              <div className="mt-6 flex flex-col gap-3 border-t-2 border-brand-green-100 pt-6 sm:flex-row sm:items-center">
+                <button
+                  type="button"
+                  onClick={handleAddPaymentMethod}
+                  className="min-h-12 rounded-xl bg-brand-green-600 px-6 font-display font-bold text-white transition-colors hover:bg-brand-green-700 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-orange-400"
+                >
+                  add payment method securely
+                </button>
+                {paymentMessage && (
+                  <p className="text-sm font-bold text-brand-green-700">
+                    {paymentMessage}
+                  </p>
+                )}
+              </div>
             </section>
           )}
           <div className="mt-8 flex justify-center">

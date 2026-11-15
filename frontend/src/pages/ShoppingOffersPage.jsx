@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/layout/Header';
+import ProductDetailModal from '../components/catalog/ProductDetailModal';
 import GradientButton from '../components/ui/button-1';
 import { getInventory } from '../services/customerService';
 import { addCartItem } from '../services/orderService';
@@ -54,10 +55,9 @@ function ProductOfferCard({
   isAdding,
   onDecrease,
   onIncrease,
+  onView,
   onAddToCart,
 }) {
-  const [showDetails, setShowDetails] = useState(false);
-
   return (
     <article className="group relative flex min-h-[390px] flex-col overflow-hidden rounded-2xl border-2 border-brand-green-600 bg-brand-green-700 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
       <div className="relative h-44 shrink-0 overflow-hidden bg-brand-green-50">
@@ -98,22 +98,15 @@ function ProductOfferCard({
             </p>
           </div>
 
-          <GradientButton
-            width="72px"
-            height="40px"
-            onClick={() => setShowDetails((open) => !open)}
-            aria-label={`View ${product.name} details`}
-            aria-expanded={showDetails}
-          >
-            {showDetails ? 'Hide' : 'View'}
-          </GradientButton>
+            <GradientButton
+              width="72px"
+              height="40px"
+              onClick={() => onView(product)}
+              aria-label={`View ${product.name} details`}
+            >
+              View
+            </GradientButton>
         </div>
-
-        {showDetails && (
-          <p className="mt-3 text-sm leading-6 text-paper/85">
-            {product.description || 'No description yet.'}
-          </p>
-        )}
 
         <div className="mt-auto pt-5">
           <div className="flex items-center justify-between border-t border-paper/20 pt-4">
@@ -172,6 +165,7 @@ function ShoppingOffersPage() {
   const [quantities, setQuantities] = useState({});
   const [addingId, setAddingId] = useState(null);
   const [notice, setNotice] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -220,6 +214,10 @@ function ShoppingOffersPage() {
         Math.max(0, (current[productId] ?? 0) + amount)
       ),
     }));
+  }
+
+  function openProductDetails(product) {
+    setSelectedProduct(product);
   }
 
   async function addToCart(product) {
@@ -327,6 +325,7 @@ function ShoppingOffersPage() {
                       changeQuantity(product.id, 1, product.stock)
                     }
                     isAdding={addingId === product.id}
+                    onView={openProductDetails}
                     onAddToCart={() => addToCart(product)}
                   />
                 </li>
@@ -339,6 +338,16 @@ function ShoppingOffersPage() {
           )}
         </main>
       </div>
+
+      <ProductDetailModal
+        product={selectedProduct}
+        quantity={selectedProduct ? quantities[selectedProduct.id] ?? 0 : 0}
+        isAdding={selectedProduct ? addingId === selectedProduct.id : false}
+        onDecrease={() => selectedProduct && changeQuantity(selectedProduct.id, -1, Number.POSITIVE_INFINITY)}
+        onIncrease={() => selectedProduct && changeQuantity(selectedProduct.id, 1, selectedProduct.stock)}
+        onAddToCart={() => selectedProduct && addToCart(selectedProduct)}
+        onClose={() => setSelectedProduct(null)}
+      />
     </div>
   );
 }

@@ -4,7 +4,13 @@ import com.example.demo.dto.OrderItemResponse;
 import com.example.demo.dto.OrderResponse;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
+import com.stripe.model.Customer;
+import com.stripe.model.PaymentIntent;
+import com.stripe.model.PaymentMethod;
+import com.stripe.model.SetupIntent;
 import com.stripe.model.checkout.Session;
+import com.stripe.param.CustomerCreateParams;
+import com.stripe.param.PaymentMethodDetachParams;
 import com.stripe.param.RefundCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,13 +40,25 @@ public class StripePaymentService {
     }
 
     public Session createCheckoutSession(OrderResponse order, String successUrl, String cancelUrl) throws StripeException {
+        return createCheckoutSession(order, null, successUrl, cancelUrl);
+    }
+
+    public Session createCheckoutSession(OrderResponse order, String customerId, String successUrl, String cancelUrl)
+            throws StripeException {
         SessionCreateParams.Builder params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
                 .setSuccessUrl(successUrl)
                 .setCancelUrl(cancelUrl)
                 .setClientReferenceId(String.valueOf(order.orderId()))
                 .putMetadata("order_id", String.valueOf(order.orderId()))
+                .addAllowedPaymentMethodType(SessionCreateParams.AllowedPaymentMethodType.CARD)
+                .setPaymentIntentData(SessionCreateParams.PaymentIntentData.builder()
+                        .setSetupFutureUsage(SessionCreateParams.PaymentIntentData.SetupFutureUsage.OFF_SESSION)
+                        .build())
                 .setExpiresAt(Instant.now().plusSeconds(SESSION_MINUTES * 60 + 60).getEpochSecond());
+        if (customerId != null && !customerId.isBlank()) {
+            params.setCustomer(customerId);
+        }
 
         for (OrderItemResponse item : order.items()) {
             params.addLineItem(lineItem(item.productName(), item.unitPrice(), item.quantity()));
@@ -68,6 +86,41 @@ public class StripePaymentService {
 
     public Session retrieveSession(String sessionId) throws StripeException {
         return client().v1().checkout().sessions().retrieve(sessionId);
+    }
+
+    public PaymentIntent retrievePaymentIntent(String paymentIntentId) throws StripeException {
+        return client().v1().paymentIntents().retrieve(paymentIntentId);
+    }
+
+    public Customer createCustomer(String name, String email) throws StripeException {
+        return client().v1().customers().create(CustomerCreateParams.builder()
+                .setName(name)
+                .setEmail(email)
+                .build());
+    }
+
+    public Session createPaymentMethodSetupSession(String customerId, String successUrl, String cancelUrl)
+            throws StripeException {
+        return client().v1().checkout().sessions().create(SessionCreateParams.builder()
+                .setMode(SessionCreateParams.Mode.SETUP)
+                .setCustomer(customerId)
+                .setCurrency("usd")
+                .addAllowedPaymentMethodType(SessionCreateParams.AllowedPaymentMethodType.CARD)
+                .setSuccessUrl(successUrl)
+                .setCancelUrl(cancelUrl)
+                .build());
+    }
+
+    public SetupIntent retrieveSetupIntent(String setupIntentId) throws StripeException {
+        return client().v1().setupIntents().retrieve(setupIntentId);
+    }
+
+    public PaymentMethod retrievePaymentMethod(String paymentMethodId) throws StripeException {
+        return client().v1().paymentMethods().retrieve(paymentMethodId);
+    }
+
+    public void detachPaymentMethod(String paymentMethodId) throws StripeException {
+        client().v1().paymentMethods().detach(paymentMethodId, PaymentMethodDetachParams.builder().build());
     }
 
     /** Stops an unpaid session from being paid later. Errors are ignored (it may already be expired or complete). */

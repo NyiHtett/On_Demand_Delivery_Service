@@ -169,4 +169,20 @@ public class UserDao {
     public int updateAccount(long userID, String name, String email, String phone, String address) {
         return jdbcTemplate.update("UPDATE users SET user_name = ?, email = ?, phone = ?, address = ? WHERE user_id = ?",  name, email, phone, address, userID);
     }
+
+    public Optional<String> getStripeCustomerId(long userId) {
+        return jdbcTemplate.query(
+            "SELECT stripe_customer_id FROM users WHERE user_id = ?",
+            (resultSet, rowNumber) -> Optional.ofNullable(resultSet.getString("stripe_customer_id")),
+            userId
+        ).stream().flatMap(Optional::stream).findFirst();
+    }
+
+    public void setStripeCustomerId(long userId, String stripeCustomerId) {
+        jdbcTemplate.update(
+            "UPDATE users SET stripe_customer_id = ? WHERE user_id = ?",
+            stripeCustomerId,
+            userId
+        );
+    }
 }
