@@ -63,6 +63,9 @@ async function request(path, { method, body, headers = {}, auth = true, ...optio
     ...options,
     method,
     headers: requestHeaders,
+    // Authentication is handled with the bearer token above; forwarding
+    // browser cookies can make the Vite proxy send oversized Cookie headers.
+    credentials: 'omit',
     body: hasBody && !isFormData ? JSON.stringify(body) : body,
   });
 

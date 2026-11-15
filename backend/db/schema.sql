@@ -6,6 +6,7 @@ CREATE TABLE users (
     address VARCHAR(300) DEFAULT NULL,
     password_hash VARCHAR(255) NOT NULL,
     user_type CHAR(8) NOT NULL,
+    stripe_customer_id VARCHAR(255) DEFAULT NULL UNIQUE,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
@@ -17,6 +18,25 @@ CREATE TABLE users (
 CREATE TABLE sessions (
     session_id VARCHAR(128) PRIMARY KEY,
     user_id INT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
+
+
+CREATE TABLE stripe_payment_methods (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    stripe_customer_id VARCHAR(255) NOT NULL,
+    stripe_payment_method_id VARCHAR(255) NOT NULL UNIQUE,
+    card_brand VARCHAR(50) NOT NULL,
+    last_four VARCHAR(4) NOT NULL,
+    expiration_month INT NOT NULL,
+    expiration_year INT NOT NULL,
+    billing_name VARCHAR(255) DEFAULT NULL,
+    is_default BOOLEAN NOT NULL DEFAULT FALSE,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (user_id)

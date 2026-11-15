@@ -1,4 +1,4 @@
-function PaymentMethod({ payment, onEdit, onDelete }) {
+function PaymentMethod({ payment, onDelete }) {
     return (
       <div className="flex flex-col gap-4 rounded-xl border-2 border-brand-green-100 bg-brand-green-50 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -12,14 +12,6 @@ function PaymentMethod({ payment, onEdit, onDelete }) {
         </div>
   
         <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => onEdit(payment)}
-            className="rounded-lg border-2 border-brand-green-600 px-4 py-2 font-display text-sm font-bold text-brand-green-700 transition-colors hover:bg-white"
-          >
-            edit
-          </button>
-  
           <button
             type="button"
             onClick={() => onDelete(payment.id)}

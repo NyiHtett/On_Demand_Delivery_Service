@@ -16,6 +16,7 @@ import com.stripe.model.checkout.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -51,6 +52,7 @@ public class CheckoutService {
     private final OrderDao orderDao;
     private final UserDao userDao;
     private final StripePaymentService stripe;
+    private final PaymentMethodService paymentMethodService;
     private final DeliveryQueueService deliveryQueue;
     private final TransactionTemplate transactionTemplate;
     private final String frontendUrl;
@@ -63,6 +65,21 @@ public class CheckoutService {
         StripePaymentService stripe,
         DeliveryQueueService deliveryQueue,
         PlatformTransactionManager transactionManager,
+        String frontendUrl
+    ) {
+        this(cartDao, productDao, orderDao, userDao, stripe, null, deliveryQueue, transactionManager, frontendUrl);
+    }
+
+    @Autowired
+    public CheckoutService(
+        CartDao cartDao,
+        ProductDao productDao,
+        OrderDao orderDao,
+        UserDao userDao,
+        StripePaymentService stripe,
+        PaymentMethodService paymentMethodService,
+        DeliveryQueueService deliveryQueue,
+        PlatformTransactionManager transactionManager,
         @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl
     ) {
         this.cartDao = cartDao;
@@ -70,6 +87,7 @@ public class CheckoutService {
         this.orderDao = orderDao;
         this.userDao = userDao;
         this.stripe = stripe;
+        this.paymentMethodService = paymentMethodService;
         this.deliveryQueue = deliveryQueue;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
         this.frontendUrl = frontendUrl.replaceAll("/$", "");
@@ -93,8 +111,10 @@ public class CheckoutService {
 
         try {
             OrderResponse order = orderDao.getOrder(orderId).orElseThrow();
+            String customerId = getOrCreateStripeCustomerId(userId);
             Session session = stripe.createCheckoutSession(
                 order,
+                customerId,
                 frontendUrl + "/order-confirmation?session_id={CHECKOUT_SESSION_ID}",
                 frontendUrl + "/checkout?canceled=1&session_id={CHECKOUT_SESSION_ID}"
             );
@@ -183,6 +203,7 @@ public class CheckoutService {
                 if (!"paid".equals(session.getPaymentStatus())) {
                     throw new ApiException(HttpStatus.PAYMENT_REQUIRED, "Payment hasn't gone through yet.");
                 }
+                savePaymentMethodAfterPayment(userId, session.getCustomer(), session.getPaymentIntent());
                 markPaid(order.orderId(), session.getPaymentIntent());
             } catch (StripeException exception) {
                 throw new ApiException(HttpStatus.BAD_GATEWAY, "Couldn't check the payment with Stripe: " + exception.getMessage());
@@ -226,6 +247,41 @@ public class CheckoutService {
         if (sessionId != null && stripe.isEnabled()) stripe.expireSession(sessionId);
     }
 
+    private String getOrCreateStripeCustomerId(long userId) throws StripeException {
+        return userDao.getStripeCustomerId(userId).orElseGet(() -> {
+            AccountResponse account = userDao.getCurrentAccountByUserId(userId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Account not found."));
+            try {
+                String customerId = stripe.createCustomer(account.user_name(), account.email()).getId();
+                userDao.setStripeCustomerId(userId, customerId);
+                return customerId;
+            } catch (StripeException exception) {
+                throw new ApiException(HttpStatus.BAD_GATEWAY, "Couldn't create Stripe customer: " + exception.getMessage());
+            }
+        });
+    }
+
+    private void savePaymentMethodAfterPayment(long userId, String customerId, String paymentIntentId)
+            throws StripeException {
+        if (paymentMethodService == null) {
+            log.warn("Automatic payment-method saving is unavailable for user {}", userId);
+            return;
+        }
+        if (customerId == null || customerId.isBlank()) {
+            customerId = userDao.getStripeCustomerId(userId).orElse(null);
+        }
+        if (customerId == null || customerId.isBlank()) {
+            log.warn("Stripe customer ID missing after payment for user {}", userId);
+            return;
+        }
+        if (paymentIntentId == null || paymentIntentId.isBlank()) {
+            log.warn("Stripe PaymentIntent ID missing after payment for user {}", userId);
+            return;
+        }
+        log.info("Saving payment method from Stripe PaymentIntent {} for user {}", paymentIntentId, userId);
+        paymentMethodService.savePaymentMethodFromPaymentIntent(userId, customerId, paymentIntentId);
+    }
+
     /** Abandoned checkouts: release their stock, unless Stripe says they were paid after all (customer closed the tab). */
     @Scheduled(fixedDelay = 60_000, initialDelay = 30_000)
     public void releaseStalePendingOrders() {
@@ -235,6 +291,9 @@ public class CheckoutService {
                 if (sessionId != null && stripe.isEnabled()) {
                     Session session = stripe.retrieveSession(sessionId);
                     if ("paid".equals(session.getPaymentStatus())) {
+                        OrderResponse order = orderDao.getOrder(orderId).orElseThrow();
+                        savePaymentMethodAfterPayment(
+                            order.customerId(), session.getCustomer(), session.getPaymentIntent());
                         markPaid(orderId, session.getPaymentIntent());
                         continue;
                     }
