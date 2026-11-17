@@ -81,7 +81,7 @@ public class UserService {
         }
 
         if (request.name() == null || request.name().isBlank() || !request.name().matches(NAME_PATTERN)) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Name is required. 2-40 chars required.");
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Name is required. 1-150 chars required.");
         }
 
         if (request.email() == null ||
@@ -95,7 +95,7 @@ public class UserService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Password is required.");
         }
         if (!request.password().matches(PASSWORD_PATTERN)) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Weak Password, include 1 special char, 1 uppercase letter, 1 lowercase letter, 1 number, and 8 or more total characters.");
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Bad Password, include 1 special char, 1 uppercase letter, 1 lowercase letter, 1 number, and 8-72 total characters.");
         }
         String email = request.email().trim().toLowerCase();
         String hashedPassword = hashPassword(request.password());
