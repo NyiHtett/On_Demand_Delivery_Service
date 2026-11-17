@@ -3,15 +3,6 @@ import Header from '../layout/Header';
 import { useState } from 'react';
 import { loginUser, signUpUser } from '../../services/customerService';
 
-const NAME_PATTERN =
-  /^[a-zA-Z]([a-zA-Z\s'-]{0,148}[a-zA-Z])?$/;
-
-const EMAIL_PATTERN =
-  /^(?=.{1,150}$)(?=.{1,64}@)[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$/;
-  
-const PASSWORD_PATTERN =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,72}$/;
-
 function AuthForm({pageTitle}) {
   const navigate = useNavigate();
   const [name, setName] = useState('');
@@ -19,26 +10,8 @@ function AuthForm({pageTitle}) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-
-  const isValidName = NAME_PATTERN.test(name);
-  const isValidEmail = EMAIL_PATTERN.test(email);
-  const isValidSignupPassword = PASSWORD_PATTERN.test(password);
-  // Condition evaluates directly on every render
-  const isSubmitButtonEnabled = 
-    (pageTitle === "Login" &&
-     email !== '' &&
-     isValidEmail &&
-     password !== '')
-      ||
-    (pageTitle === "Sign Up" &&
-     name !== '' &&
-     isValidName &&
-     email !== '' &&
-     isValidEmail &&
-     password !== '' &&
-     isValidSignupPassword &&
-     password === confirmPassword);
   
+  const isSubmitButtonEnabled = (pageTitle === 'Login' || password === confirmPassword);
   async function handleSubmit(event) {
     event.preventDefault();
 
@@ -83,11 +56,11 @@ function AuthForm({pageTitle}) {
                       Name
                     </h2>
                   </div>
-                  <label htmlFor="Email" className="sr-only">
+                  <label htmlFor="name-field" className="sr-only">
                     Enter Your Name
                   </label>
                   <input
-                    id="username"
+                    id="name-field"
                     type="text"
                     value={name} 
                     onChange={(e) => setName(e.target.value)} 
@@ -103,11 +76,11 @@ function AuthForm({pageTitle}) {
               </div>
 
 
-              <label htmlFor="Email" className="sr-only">
+              <label htmlFor="email-field" className="sr-only">
                 Enter Your Email
               </label>
               <input
-                id="username"
+                id="email-field"
                 type="email"
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
@@ -119,13 +92,12 @@ function AuthForm({pageTitle}) {
                   Password
                 </h2>
               </div>
-              <label htmlFor="Password" className="sr-only">
+              <label htmlFor="password-field" className="sr-only">
                 Enter Your Password
               </label>
               <input
-                id="password"
+                id="password-field"
                 type="password"
-                pattern={pageTitle === 'Sign Up' ? PASSWORD_PATTERN.source : undefined}
                 minLength={pageTitle === 'Sign Up' ? 8 : undefined}
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
@@ -144,6 +116,11 @@ function AuthForm({pageTitle}) {
                     className="min-h-12 w-full rounded-xl border-2 border-brand-green-100 bg-white py-3 pl-12 pr-12 text-ink outline-none transition-colors placeholder:text-ink/40 focus:border-brand-green-500" 
                   />
                 </div>
+              )}
+              {pageTitle === 'Sign Up' && !isSubmitButtonEnabled && (
+                <p className="mt-4 text-sm font-semibold text-red-700" role="alert">
+                  Passwords must be matching!
+                </p>
               )}
               {errorMessage && (
                 <p className="mt-4 text-sm font-semibold text-red-700" role="alert">

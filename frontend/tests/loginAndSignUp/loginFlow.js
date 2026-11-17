@@ -23,8 +23,8 @@ export async function runLogIn_OnlyTest(page, testInfo, scenario) {
 async function loginFlow(page, scenario, success) {
   await test.step('Login', async () => {
     await page.goto(BASE_URL + 'login');
-    await page.getByRole('textbox', { name: 'Enter your email...' }).fill(scenario.email);
-    await page.getByRole('textbox', { name: 'Enter your password...' }).fill(scenario.password);
+    await page.getByRole('textbox', { name: 'Enter your email' }).fill(scenario.email);
+    await page.getByRole('textbox', { name: 'Enter your password' }).fill(scenario.password);
 
     if (success) {
       const loginResponse = page.waitForResponse(response =>
@@ -38,10 +38,6 @@ async function loginFlow(page, scenario, success) {
       await expect(page.getByRole('textbox', { name: 'name', exact: true })).toHaveValue(scenario.name);
       await expect(page.getByRole('textbox', { name: 'email' })).toHaveValue(scenario.email);
       logPass("Login Successful! Role: " + scenario.role);
-    }
-    else if (scenario.role === "Invalid Email User") {
-      await expect(page.getByRole('button', { name: 'Login' })).toBeDisabled();
-      logPass("Login Failed! Role: " + scenario.role);
     }
     else {
       await page.getByRole('button', { name: 'Login' }).click();

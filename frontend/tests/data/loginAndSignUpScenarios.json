@@ -18,7 +18,7 @@
   {
     "role": "Invalid Email User",
     "name": "test-user",
-    "email": "invalidEmail",
+    "email": "invalidEmail@localhost",
     "password": "aaAA88**",
     "userType": "Customer",
     "submit": false
@@ -46,5 +46,13 @@
     "password": "aaAA88**",
     "userType": "Customer", 
     "submit": false
+  },
+  {
+    "role": "Too Long Password User",
+    "name": "a",
+    "email": "test.user@gmail.com",
+    "password": "aaAA88**aaAA88**aaAA88**aaAA88**aaAA88**aaAA88**aaAA88**aaAA88**aaAA88**a",
+    "userType": "Customer", 
+    "submit": false    
   }
 ]

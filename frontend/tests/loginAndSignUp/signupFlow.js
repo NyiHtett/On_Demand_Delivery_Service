@@ -4,9 +4,9 @@ import { BASE_URL } from '../../playwright.config';
 
 async function navigateAndFillSignUp(page, scenario, uniqueEmail) {
   await page.goto(BASE_URL + 'sign-up');
-  await page.getByRole('textbox', { name: 'Enter your name...' }).fill(scenario.name);
-  await page.getByRole('textbox', { name: 'Enter your email...' }).fill(uniqueEmail); 
-  await page.getByRole('textbox', { name: 'Enter your password...' }).fill(scenario.password);
+  await page.getByRole('textbox', { name: 'Enter your name' }).fill(scenario.name);
+  await page.getByRole('textbox', { name: 'Enter your email' }).fill(uniqueEmail); 
+  await page.getByRole('textbox', { name: 'Enter your password' }).fill(scenario.password);
   await page.getByRole('textbox', { name: 'Confirm Your Password' }).fill(scenario.password);
 }
 
@@ -36,7 +36,19 @@ async function submitSignUp(page, scenario, uniqueEmail, shouldSucceed) {
     return true; //true because first sign up worked so login will too
   }
   else {
-    await expect(page.getByRole('button', { name: 'Sign Up' })).toBeDisabled();
+    await page.getByRole('button', { name: 'Sign Up' }).click();
+    if (scenario.role === "No Name User" || scenario.role === "Too Long Name User") {
+      await expect(page.getByRole('alert')).toContainText('Name is required. 1-150 chars required.');
+    }
+    else if (scenario.role === "Invalid Email User") {
+      await expect(page.getByRole('alert')).toContainText("Email is not valid.");
+    }
+    else if (scenario.role === "Weak Password User" || scenario.role === "Too Long Password User") {
+      await expect(page.getByRole('alert')).toContainText("Bad Password, include 1 special char, 1 uppercase letter, 1 lowercase letter, 1 number, and 8-72 total characters.");
+    }
+    else {
+      await expect(page.getByRole('button', { name: 'Sign Up' })).toBeDisabled();
+    }
     logPass("Sign Up Failed! Role: " + scenario.role);
     return false;
   }
