@@ -37,7 +37,10 @@ CREATE TABLE stripe_payment_methods (
     expiration_year INT NOT NULL,
     billing_name VARCHAR(255) DEFAULT NULL,
     is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    card_fingerprint VARCHAR(255) NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT uniqueCardsPerCustomer UNIQUE (stripe_customer_id, card_fingerprint),
 
     FOREIGN KEY (user_id)
         REFERENCES users(user_id)

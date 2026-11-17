@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -33,30 +34,23 @@ public class PaymentMethodDao {
             ), userId);
     }
 
+    @Transactional
     public long save(long userId, String stripeCustomerId, String stripePaymentMethodId,
                      String cardBrand, String lastFour, int expirationMonth,
-                     int expirationYear, String billingName) {
-        // Confirming the same checkout/setup session twice is safe and idempotent.
-        jdbcTemplate.update(
-            "UPDATE stripe_payment_methods SET is_default = FALSE WHERE user_id = ?",
-            userId
-        );
+                     int expirationYear, String billingName, String cardFingerprint) {
+        Long existingId = getIdByStripePaymentMethodId(userId, stripePaymentMethodId);
+        if (existingId != null) {
+            setDefaultPaymentMethod(userId, existingId);
+            return existingId;
+        }
+
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             var statement = connection.prepareStatement("""
                 INSERT INTO stripe_payment_methods
                     (user_id, stripe_customer_id, stripe_payment_method_id, card_brand,
-                     last_four, expiration_month, expiration_year, billing_name, is_default)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE)
-                ON DUPLICATE KEY UPDATE
-                    user_id = VALUES(user_id),
-                    stripe_customer_id = VALUES(stripe_customer_id),
-                    card_brand = VALUES(card_brand),
-                    last_four = VALUES(last_four),
-                    expiration_month = VALUES(expiration_month),
-                    expiration_year = VALUES(expiration_year),
-                    billing_name = VALUES(billing_name),
-                    is_default = TRUE
+                     last_four, expiration_month, expiration_year, billing_name, is_default, card_fingerprint)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, FALSE, ?)
                 """, java.sql.Statement.RETURN_GENERATED_KEYS);
             statement.setLong(1, userId);
             statement.setString(2, stripeCustomerId);
@@ -66,10 +60,24 @@ public class PaymentMethodDao {
             statement.setInt(6, expirationMonth);
             statement.setInt(7, expirationYear);
             statement.setString(8, billingName);
+            statement.setString(9, cardFingerprint);
             return statement;
         }, keyHolder);
         Number id = keyHolder.getKey();
-        return id == null ? 0 : id.longValue();
+        if (id == null) {
+            throw new IllegalStateException("Saving the payment method did not return a database ID.");
+        }
+
+        setDefaultPaymentMethod(userId, id.longValue());
+        return id.longValue();
+    }
+
+    private void setDefaultPaymentMethod(long userId, long id) {
+        jdbcTemplate.update("""
+            UPDATE stripe_payment_methods
+            SET is_default = (id = ?)
+            WHERE user_id = ?
+            """, id, userId);
     }
 
     public String getStripePaymentMethodId(long userId, long id) {
@@ -77,6 +85,28 @@ public class PaymentMethodDao {
             "SELECT stripe_payment_method_id FROM stripe_payment_methods WHERE id = ? AND user_id = ?",
             (resultSet, rowNumber) -> resultSet.getString("stripe_payment_method_id"),
             id, userId
+        );
+        return ids.isEmpty() ? null : ids.get(0);
+    }
+
+    public Long getIdByStripePaymentMethodId(long userId, String stripePaymentMethodId) {
+        List<Long> ids = jdbcTemplate.query(
+            "SELECT id FROM stripe_payment_methods WHERE user_id = ? AND stripe_payment_method_id = ?",
+            (resultSet, rowNumber) -> resultSet.getLong("id"),
+            userId, stripePaymentMethodId
+        );
+        return ids.isEmpty() ? null : ids.get(0);
+    }
+
+    public String getPaymentMethodIdByFingerprint(String customerId, String fingerprint) {
+        List<String> ids = jdbcTemplate.query("""
+            SELECT stripe_payment_method_id
+            FROM stripe_payment_methods
+            WHERE stripe_customer_id = ? AND card_fingerprint = ?
+            LIMIT 1
+            """,
+            (rs, rowNum) -> rs.getString("stripe_payment_method_id"),
+            customerId, fingerprint
         );
         return ids.isEmpty() ? null : ids.get(0);
     }

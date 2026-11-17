@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.dao.DuplicateKeyException;
 
 import java.util.List;
 
@@ -100,7 +101,16 @@ public class PaymentMethodService {
             String billingName = paymentMethod.getBillingDetails() == null
                     ? account.user_name()
                     : paymentMethod.getBillingDetails().getName();
-            paymentMethodDao.save(
+
+            String cardFingerprint = paymentMethod.getCard().getFingerprint();
+            if (cardFingerprint == null || cardFingerprint.isBlank()) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "This card can't be saved. It does not have a fingerprint.");
+            }
+            String previouslyExistingCardID = paymentMethodDao.getPaymentMethodIdByFingerprint(customerId, cardFingerprint);
+            if (previouslyExistingCardID != null && !previouslyExistingCardID.equals(paymentMethod.getId())) {
+                throw new ApiException(HttpStatus.CONFLICT, "This card is saved already.");
+            }
+            boolean saved = savePaymentMethod(
                     userId,
                     customerId,
                     paymentMethod.getId(),
@@ -108,8 +118,12 @@ public class PaymentMethodService {
                     paymentMethod.getCard().getLast4(),
                     Math.toIntExact(paymentMethod.getCard().getExpMonth()),
                     Math.toIntExact(paymentMethod.getCard().getExpYear()),
-                    billingName == null || billingName.isBlank() ? account.user_name() : billingName
+                    billingName == null || billingName.isBlank() ? account.user_name() : billingName,
+                    cardFingerprint
             );
+            if (!saved) {
+                throw new ApiException(HttpStatus.CONFLICT, "This card is saved already.");
+            }
 
             return paymentMethodDao.getByUserId(userId).get(0);
         } catch (StripeException exception) {
@@ -140,7 +154,16 @@ public class PaymentMethodService {
         String billingName = paymentMethod.getBillingDetails() == null
                 ? account.user_name()
                 : paymentMethod.getBillingDetails().getName();
-        paymentMethodDao.save(
+
+        String cardFingerprint = paymentMethod.getCard().getFingerprint();
+        if (cardFingerprint == null || cardFingerprint.isBlank()) {
+            return; //skip saving because card does not have a fingerprint
+        }
+        String previouslyExistingCardID = paymentMethodDao.getPaymentMethodIdByFingerprint(customerId, cardFingerprint);
+        if (previouslyExistingCardID != null && !previouslyExistingCardID.equals(paymentMethod.getId())) {
+            return; //skip saving because card is previously saved
+        }
+        boolean saved = savePaymentMethod(
                 userId,
                 customerId,
                 paymentMethod.getId(),
@@ -148,8 +171,33 @@ public class PaymentMethodService {
                 paymentMethod.getCard().getLast4(),
                 Math.toIntExact(paymentMethod.getCard().getExpMonth()),
                 Math.toIntExact(paymentMethod.getCard().getExpYear()),
-                billingName == null || billingName.isBlank() ? account.user_name() : billingName
+                billingName == null || billingName.isBlank() ? account.user_name() : billingName,
+                cardFingerprint
         );
+        if (!saved) {
+            log.warn("Card fingerprint {} is already saved for customer {}; skipping duplicate",
+                    cardFingerprint, customerId);
+        }
+    }
+
+    private boolean savePaymentMethod(long userId, String customerId, String stripePaymentMethodId,
+                                      String cardBrand, String lastFour, int expirationMonth,
+                                      int expirationYear, String billingName, String cardFingerprint) {
+        try {
+            paymentMethodDao.save(userId, customerId, stripePaymentMethodId, cardBrand, lastFour,
+                    expirationMonth, expirationYear, billingName, cardFingerprint);
+            return true;
+        } catch (DuplicateKeyException exception) {
+            String existingPaymentMethodId =
+                    paymentMethodDao.getPaymentMethodIdByFingerprint(customerId, cardFingerprint);
+            if (stripePaymentMethodId.equals(existingPaymentMethodId)
+                    || paymentMethodDao.getIdByStripePaymentMethodId(userId, stripePaymentMethodId) != null) {
+                paymentMethodDao.save(userId, customerId, stripePaymentMethodId, cardBrand, lastFour,
+                        expirationMonth, expirationYear, billingName, cardFingerprint);
+                return true;
+            }
+            return false;
+        }
     }
 
     public void deletePaymentMethod(long userId, Long paymentMethodId) {
