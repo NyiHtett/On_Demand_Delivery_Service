@@ -1,7 +1,5 @@
 import { Route, Routes } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
-import HomePage from './pages/HomePage';
-import ShoppingPage from './pages/ShoppingPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import LoginPage from './pages/LoginPage';
@@ -11,8 +9,6 @@ import ManagerPage from './pages/ManagerPage';
 import NotFoundPage from './pages/NotFoundPage';
 import OrderHistoryPage from './pages/OrderHistoryPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
-
-//testing
 import ShoppingOffersPage from './pages/ShoppingOffersPage';
 
 function App() {
