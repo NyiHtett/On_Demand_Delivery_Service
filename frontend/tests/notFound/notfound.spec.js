@@ -12,6 +12,6 @@ test.describe('not found page', () => {
 
     await page.getByRole('link', { name: 'return home' }).click();
 
-    await expect(page.getByRole('heading', { name: 'fresh groceries' })).toBeVisible();
+    await expect(page.getByRole('main')).toContainText('Sort by:RecommendedName: A to ZPrice: Low to HighPrice: High to Low');
   });
 });
