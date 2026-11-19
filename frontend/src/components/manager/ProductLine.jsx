@@ -4,7 +4,16 @@
     the price
     and then three buttons
     most of these fields are now editable */}
-    import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+
+function handleEditKeys(event, savedValue) {
+  if (event.key === 'Enter') {
+    event.currentTarget.blur();
+  } else if (event.key === 'Escape') {
+    event.currentTarget.value = savedValue;
+    event.currentTarget.blur();
+  }
+}
 
 function ProductLine({ product, onDecrease, onIncrease, onWeightChange, onPriceChange, onStockChange, onDescriptionChange, onImageUrlChange, onDelete }) {
   const [imageFailed, setImageFailed] = useState(false);
@@ -33,6 +42,7 @@ function ProductLine({ product, onDecrease, onIncrease, onWeightChange, onPriceC
             event.target.value = weight;
             onWeightChange(weight);
           }}
+          onKeyDown={(event) => handleEditKeys(event, Number(product.unit).toFixed(3))}
           className="w-20 rounded border border-brand-green-100 px-2 text-sm text-ink/75"/>
           <span className="text-sm text-ink/75">lb</span>
         </div>
@@ -40,11 +50,13 @@ function ProductLine({ product, onDecrease, onIncrease, onWeightChange, onPriceC
         <input type="text" placeholder="product description here..." maxLength={1000}
           key={product.description ?? ''} defaultValue={product.description ?? ''}
           onBlur={(event) => onDescriptionChange(event.target.value.trim() || null)}
+          onKeyDown={(event) => handleEditKeys(event, product.description ?? '')}
           className="mt-1 w-full rounded border border-brand-green-100 px-2 text-sm text-ink/75"/>
 
         <input type="url" placeholder="image url here..." maxLength={5000}
           key={product.imageUrl ?? ''} defaultValue={product.imageUrl ?? ''}
           onBlur={(event) => onImageUrlChange(event.target.value.trim() || null)}
+          onKeyDown={(event) => handleEditKeys(event, product.imageUrl ?? '')}
           className="mt-1 w-full rounded border border-brand-green-100 px-2 text-sm text-ink/75"/>
       </div>
  
@@ -56,6 +68,7 @@ function ProductLine({ product, onDecrease, onIncrease, onWeightChange, onPriceC
             event.target.value = price;
             onPriceChange(price);
           }}
+          onKeyDown={(event) => handleEditKeys(event, Number(product.price).toFixed(2))}
           className="w-24 rounded border border-brand-green-100 px-2 font-display text-lg font-black text-brand-orange-500"/>
       </div>
  
@@ -74,6 +87,7 @@ function ProductLine({ product, onDecrease, onIncrease, onWeightChange, onPriceC
             event.target.value = stock;
             onStockChange(stock);
           }}
+          onKeyDown={(event) => handleEditKeys(event, product.stock)}
           className="h-10 w-16 rounded-lg border border-brand-green-100 text-center font-bold"/>
         <button
           type="button"

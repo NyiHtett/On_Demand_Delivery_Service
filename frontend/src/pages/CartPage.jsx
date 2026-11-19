@@ -103,6 +103,7 @@ function CartPage() {
                   onDecrease={() => changeCart(updateCartItemQuantity(item.id, item.quantity - 1))}
                   onIncrease={() => changeCart(updateCartItemQuantity(item.id, item.quantity + 1))}
                   onRemove={() => changeCart(removeCartItem(item.id))}
+                  onSetQuantity={(quantity) => changeCart(updateCartItemQuantity(item.id, quantity))}
                 />
               ))}
             </ul>

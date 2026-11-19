@@ -4,12 +4,28 @@ function formatMoney(amount) {
   return `$${amount.toFixed(2)}`;
 }
 
-function CartItem({ item, onDecrease, onIncrease, onRemove }) {
+function CartItem({ item, onDecrease, onIncrease, onRemove, onSetQuantity }) {
   const [imageFailed, setImageFailed] = useState(false);
+  const [itemQuantity, setItemQuantity] = useState(String(item.quantity));
+
+  useEffect(() => {
+    setItemQuantity(String(item.quantity));
+  }, [item.quantity]);
 
   useEffect(() => {
     setImageFailed(false);
   }, [item.imageUrl]);
+
+  const maxQuantity = item.stock != null ? Math.max(1, Number(item.stock)) : 999;
+
+  function snapQuantity() {
+    const parsed = parseInt(itemQuantity, 10);
+    const snapped = Number.isNaN(parsed) ? item.quantity : Math.min(Math.max(1, parsed), maxQuantity);
+    setItemQuantity(String(snapped));
+    if (snapped !== item.quantity) {
+      onSetQuantity(snapped);
+    }
+  }
 
   return (
     <li className="grid grid-cols-[5rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-brand-green-100 py-5 last:border-b-0 sm:grid-cols-[6rem_minmax(9rem,1fr)_12rem_7rem_3rem]">
@@ -42,9 +58,23 @@ function CartItem({ item, onDecrease, onIncrease, onRemove }) {
         >
           −
         </button>
-        <output className="grid h-10 place-items-center rounded-lg border border-brand-green-100 font-bold" aria-live="polite">
-          {item.quantity}
-        </output>
+        <input
+          type="text"
+          inputMode="numeric"
+          value={itemQuantity}
+          onChange={(event) => setItemQuantity(event.target.value.replace(/\D/g, ''))}
+          onBlur={snapQuantity}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.currentTarget.blur();
+            } else if (event.key === 'Escape') {
+              setItemQuantity(String(item.quantity));
+            }
+          }}
+          onFocus={(event) => event.target.select()}
+          className="h-10 w-full rounded-lg border border-brand-green-100 text-center font-bold focus:border-brand-green-500 focus:outline-none"
+          aria-label={`${item.name} quantity`}
+          />
         <button
           type="button"
           onClick={onIncrease}
