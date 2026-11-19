@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import ProductTable from '../components/manager/ProductTable';
 import ProductSearch from '../components/catalog/ProductSearch';
 import { getInventory, updateProduct, createProduct, deleteProduct } from '../services/productService';
@@ -83,10 +83,13 @@ function ManagerPage() {
 
   const hasChanges = changedProducts.length > 0;
 
+  const changedProductsRef = useRef(changedProducts);
+  changedProductsRef.current = changedProducts;
+
   usePolling(() => {
     getInventory().then((data) => {
       const fresh = data.map(toDisplayProduct);
-      const editedIds = new Set(changedProducts.map((p) => p.id));
+      const editedIds = new Set(changedProductsRef.current.map((p) => p.id));
       
       const keepEdited = (current) => fresh.map((serverProduct) => editedIds.has(serverProduct.id) ? 
         current.find((p) => p.id === serverProduct.id) ?? serverProduct :
