@@ -9,8 +9,8 @@
   },
   {
     "role": "Existing Customer",
-    "name": "Maria Lopez",
-    "email": "maria.lopez@example.com",
+    "name": "Sam Patel",
+    "email": "sam.patel@example.com",
     "password": "P@ssw0rd!",
     "userType": "Customer",
     "submit": false
