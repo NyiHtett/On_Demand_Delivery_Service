@@ -35,33 +35,36 @@ ON DUPLICATE KEY UPDATE
     password_hash = VALUES(password_hash),
     user_type = VALUES(user_type);
 
-
-INSERT INTO payment_methods (
-    card_number,
-    security_pin,
-    expiration_date,
-    card_type,
+INSERT IGNORE INTO stripe_payment_methods (
+    user_id,
+    stripe_customer_id,
+    stripe_payment_method_id,
+    card_brand,
+    last_four,
+    expiration_month,
+    expiration_year,
     billing_name,
-    billing_address
+    is_default,
+    card_fingerprint
 )
-VALUES
-    ('1234567891011121', '123', '2028-12-30', 'Visa',
-     'Maria Lopez', '777 The Alameda, San Jose, CA 95126'),
-    ('5555555555554444', '456', '2029-03-31', 'Mastercard',
-     'Sam Patel', '1000 Lincoln Ave, San Jose, CA 95125'),
-    ('378282246310005', '789', '2027-11-30', 'American Express',
-     'Leah Ni', '3010 W Grant Line Rd, Tracy, CA 95304')
-ON DUPLICATE KEY UPDATE
-    security_pin = VALUES(security_pin),
-    expiration_date = VALUES(expiration_date),
-    card_type = VALUES(card_type),
-    billing_name = VALUES(billing_name),
-    billing_address = VALUES(billing_address);
+SELECT
+    user_id,
+    'cus_VeH94KmStBJIf3',
+    'pm_1UcyxvB4xYrumKGNzlHmMIwK',
+    'visa',
+    '4242',
+    11,
+    2027,
+    user_name,
+    1,
+    'mA6DdJPiptPwg4df'
+FROM users
+WHERE email = 'maria.lopez@example.com';
 
 
 -- only customers save payment methods in the application.
-INSERT IGNORE INTO user_payment_methods (user_id, card_number)
-SELECT user_id, '1234567891011121'
+INSERT IGNORE INTO user_payment_methods (user_id, card_fingerprint)
+SELECT user_id, 'mA6DdJPiptPwg4df' -- for 4242 4242 4242 4242
 FROM users
 WHERE email = 'maria.lopez@example.com';
 

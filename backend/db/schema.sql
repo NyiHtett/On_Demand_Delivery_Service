@@ -47,30 +47,15 @@ CREATE TABLE stripe_payment_methods (
         ON DELETE CASCADE
 );
 
-
-CREATE TABLE payment_methods (
-    card_number VARCHAR(30) PRIMARY KEY,
-    security_pin VARCHAR(5) NOT NULL,
-    expiration_date DATE NOT NULL,
-    card_type VARCHAR(30) NOT NULL,
-    billing_name VARCHAR(100) NOT NULL,
-    billing_address VARCHAR(300) NOT NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-
 CREATE TABLE user_payment_methods (
     user_id INT NOT NULL,
-    card_number VARCHAR(30) NOT NULL,
+    card_fingerprint VARCHAR(255) NOT NULL,
 
-    PRIMARY KEY (user_id, card_number),
+    PRIMARY KEY (user_id, card_fingerprint),
+    INDEX idx_card_fingerprint (card_fingerprint),
 
     FOREIGN KEY (user_id)
         REFERENCES users(user_id)
-        ON DELETE CASCADE,
-
-    FOREIGN KEY (card_number)
-        REFERENCES payment_methods(card_number)
         ON DELETE CASCADE
 );
 
@@ -158,7 +143,7 @@ CREATE TABLE orders (
     cart_id INT NOT NULL UNIQUE,
 
     -- Nullable so an order survives payment-method deletion.
-    card_number VARCHAR(30) DEFAULT NULL,
+    card_fingerprint VARCHAR(30) DEFAULT NULL,
 
     -- Pending = awaiting payment, Ordered = paid and queued for a robot.
     order_status VARCHAR(20) NOT NULL DEFAULT 'Pending',
@@ -186,9 +171,7 @@ CREATE TABLE orders (
         REFERENCES shopping_carts(cart_id)
         ON DELETE RESTRICT,
 
-    FOREIGN KEY (card_number)
-        REFERENCES payment_methods(card_number)
-        ON DELETE SET NULL,
+    INDEX idx_card_fingerprint (card_fingerprint),
 
     CHECK (
         order_status IN (

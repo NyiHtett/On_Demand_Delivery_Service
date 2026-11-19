@@ -1,14 +1,23 @@
 import { test, expect } from '@playwright/test';
+import { runLogIn_OnlyTest } from '../loginAndSignUp/loginFlow';
 
 const frontendUrl = 'http://localhost:5173';
 const backendUrl = 'http://localhost:8080';
 
 const account = {
-  user_id: 1,
-  user_name: 'Test Customer',
-  email: 'testcustomer@example.com',
-  address: '123 Test Street',
-  phone: '555-123-4567',
+  user_id: 4,
+  user_name: 'Maria Lopez',
+  email: 'maria.lopez@example.com',
+  address: '777 The Alameda, San Jose, CA 95126',
+  phone: '14085550101',
+  user_type: 'Customer',
+};
+const updatedAccount = {
+  user_id: 4,
+  user_name: 'Updated Maria Lopez',
+  email: 'updated.maria.lopez@example.com',
+  address: '5095 Almaden Expy, San Jose, CA 95118',
+  phone: '14086003072',
   user_type: 'Customer',
 };
 
@@ -23,86 +32,78 @@ function getToken(responseBody) {
 }
 
 test.describe('Account page frontend', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      localStorage.setItem('api_token', 'playwright-test-token');
+  test("account login, read, update", async ({page}, testInfo) => {
+    await runLogIn_OnlyTest(page, testInfo, 
+      {
+      "role": "Existing Customer",
+      "name": account.user_name,
+      "email": account.email,
+      "password": "P@ssw0rd!",
+      "userType": "Customer",
+      "submit": false
     });
-
-    await page.route('**/api/users/me', async (route) => {
-      if (route.request().method() === 'GET') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify(account),
-        });
-        return;
-      }
-
-      if (route.request().method() === 'PUT') {
-        const updatedAccount = route.request().postDataJSON();
-
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            ...account,
-            user_name: updatedAccount.name,
-            email: updatedAccount.email,
-            address: updatedAccount.address,
-            phone: updatedAccount.phone,
-          }),
-        });
-      }
-    });
-
-    await page.goto(`${frontendUrl}/account`);
-  });
-
-  test('loads account information', async ({ page }) => {
-    await expect(
-      page.getByRole('heading', { name: 'my account' })
-    ).toBeVisible();
-
-    await expect(page.locator('#account-name')).toHaveValue(
-      'Test Customer'
-    );
-
-    await expect(page.locator('#account-email')).toHaveValue(
-      'testcustomer@example.com'
-    );
-
-    await expect(page.locator('#account-address')).toHaveValue(
-      '123 Test Street'
-    );
-
-    await expect(page.locator('#account-phone')).toHaveValue(
-      '555-123-4567'
-    );
-  });
-
-  test('updates account information', async ({ page }) => {
-    await page.locator('#account-name').fill('Updated Customer');
-    await page.locator('#account-address').fill('456 Updated Street');
-
-    await page
-      .getByRole('button', { name: 'update information' })
-      .click();
-
-    await expect(
-      page.getByText('Account information updated.')
-    ).toBeVisible();
-  });
-
-  test('shows customer payment methods', async ({ page }) => {
-    await expect(
-      page.getByRole('heading', { name: 'payment methods' })
-    ).toBeVisible();
-
-    await expect(
-      page.getByText('Visa ending in 1121', { exact: true })
-    ).toBeVisible();
+    await readAccountInfo(account, page);
+    await updateAccountInfo(updatedAccount, page);
+    await page.reload();
+    await readAccountInfo(updatedAccount, page);
+    await updateAccountInfo(account, page);
+    await readAccountInfo(account, page);
   });
 });
+
+test('shows customer payment methods in account', async ({ page }, testInfo) => {
+  await runLogIn_OnlyTest(page, testInfo, 
+  {
+    "role": "Existing Customer",
+    "name": account.user_name,
+    "email": account.email,
+    "password": "P@ssw0rd!",
+    "userType": "Customer",
+    "submit": false
+  });
+  await expect(
+    page.getByRole('heading', { name: 'payment methods' })
+  ).toBeVisible();
+
+  await expect(page.getByText('visa ending in 4242Maria Lopez · Expires 2027-11delete')).toBeVisible();
+});
+
+async function readAccountInfo(account, page) {
+  await expect(
+    page.getByRole('heading', { name: 'my account' })
+  ).toBeVisible();
+
+  await expect(page.locator('#account-name')).toHaveValue(
+    account.user_name
+  );
+
+  await expect(page.locator('#account-email')).toHaveValue(
+    account.email
+  );
+
+  await expect(page.locator('#account-address')).toHaveValue(
+    account.address
+  );
+
+  await expect(page.locator('#account-phone')).toHaveValue(
+    account.phone
+  );
+}
+
+async function updateAccountInfo(account, page) {
+  await page.locator('#account-name').fill(account.user_name);
+  await page.locator('#account-email').fill(account.email);
+  await page.locator('#account-address').fill(account.address);
+  await page.locator('#account-phone').fill(account.phone);
+
+  await page
+    .getByRole('button', { name: 'update information' })
+    .click();
+
+  await expect(
+    page.getByText('Account information updated.')
+  ).toBeVisible();
+}
 
 test.describe('Account backend API', () => {
   test('gets the current account with a valid token', async ({
