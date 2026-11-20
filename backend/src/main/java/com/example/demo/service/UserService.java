@@ -25,6 +25,7 @@ public class UserService {
         "^(?=.{1,150}$)(?=.{1,64}@)[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$";
     private static final String PASSWORD_PATTERN =
         "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d]).{8,72}$";
+    private static final String PHONE_PATTERN = "^\\+?[0-9\\s().-]+$";
         
     private final UserDao userDao;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -120,14 +121,23 @@ public class UserService {
     public AccountResponse updateCurrentAccount(Long user_id, AccountRequest accountRequest) {
         String name = accountRequest.name().trim();
         String email = accountRequest.email().trim();
-        String phone = accountRequest.phone().trim();
-        String Address = accountRequest.address().trim();
+        // phone and address are optional, so blank ones are saved as null
+        String phone = blankToNull(accountRequest.phone());
+        String Address = blankToNull(accountRequest.address());
+        if (phone != null && (!phone.matches(PHONE_PATTERN) || phone.length() > 20
+                || phone.replaceAll("\\D", "").length() < 10 || phone.replaceAll("\\D", "").length() > 15)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Enter a valid phone number (10-15 digits).");
+        }
         userDao.updateAccount(user_id, name, email, phone, Address);
         return userDao.getCurrentAccountByUserId(user_id).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Account not found."));
     }
 
     public void logoutUser(String apiToken) {
         userDao.deleteSession(apiToken);
+    }
+
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     public String hashPassword(String password) {

@@ -63,7 +63,6 @@ function AccountForm({ profile, onChange, onSubmit, message }) {
             name="address"
             value={profile.address}
             onChange={onChange}
-            required
             rows="3"
             className="w-full resize-none rounded-xl border-2 border-brand-green-100 bg-brand-green-50 px-4 py-3 text-ink outline-none focus:border-brand-green-600"
           />
@@ -83,7 +82,7 @@ function AccountForm({ profile, onChange, onSubmit, message }) {
             type="tel"
             value={profile.phone}
             onChange={onChange}
-            required
+            placeholder="(408) 555-0101"
             className="min-h-12 w-full rounded-xl border-2 border-brand-green-100 bg-brand-green-50 px-4 text-ink outline-none focus:border-brand-green-600"
           />
         </div>

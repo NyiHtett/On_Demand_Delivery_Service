@@ -87,9 +87,18 @@ function AccountPage() {
 
   async function handleProfileUpdate(event) {
     event.preventDefault();
-    setIsSaving(true);
     setProfileMessage('');
     setProfileError('');
+
+    // phone is optional, but if given it needs 10-15 digits
+    const phone = profile.phone.trim();
+    const digits = phone.replace(/\D/g, '');
+    if (phone && (!/^\+?[\d\s().-]+$/.test(phone) || digits.length < 10 || digits.length > 15 || phone.length > 20)) {
+      setProfileError('Enter a valid phone number (10-15 digits).');
+      return;
+    }
+
+    setIsSaving(true);
 
     try {
       const updatedAccount = await updateCurrentUser(profile);
