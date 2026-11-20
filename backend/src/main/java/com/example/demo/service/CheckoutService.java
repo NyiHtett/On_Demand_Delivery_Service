@@ -52,6 +52,7 @@ public class CheckoutService {
     private final OrderDao orderDao;
     private final UserDao userDao;
     private final StripePaymentService stripe;
+    private final AddressValidationService addressValidationService;
     private final PaymentMethodService paymentMethodService;
     private final DeliveryQueueService deliveryQueue;
     private final TransactionTemplate transactionTemplate;
@@ -67,7 +68,7 @@ public class CheckoutService {
         PlatformTransactionManager transactionManager,
         String frontendUrl
     ) {
-        this(cartDao, productDao, orderDao, userDao, stripe, null, deliveryQueue, transactionManager, frontendUrl);
+        this(cartDao, productDao, orderDao, userDao, stripe, null, null, deliveryQueue, transactionManager, frontendUrl);
     }
 
     @Autowired
@@ -78,6 +79,7 @@ public class CheckoutService {
         UserDao userDao,
         StripePaymentService stripe,
         PaymentMethodService paymentMethodService,
+        AddressValidationService addressValidationService,
         DeliveryQueueService deliveryQueue,
         PlatformTransactionManager transactionManager,
         @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl
@@ -87,6 +89,7 @@ public class CheckoutService {
         this.orderDao = orderDao;
         this.userDao = userDao;
         this.stripe = stripe;
+        this.addressValidationService = addressValidationService;
         this.paymentMethodService = paymentMethodService;
         this.deliveryQueue = deliveryQueue;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
@@ -100,6 +103,17 @@ public class CheckoutService {
             : requestedAddress.trim();
         if (address == null || address.isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Enter a delivery address.");
+        }
+        if (addressValidationService != null) {
+            try {
+                if (!addressValidationService.isValid(address)) {
+                    throw new ApiException(HttpStatus.BAD_REQUEST,
+                        "That delivery address could not be verified. Please enter a complete street address.");
+                }
+            } catch (IllegalStateException exception) {
+                throw new ApiException(HttpStatus.BAD_GATEWAY,
+                    "Address validation is temporarily unavailable. Please try again.");
+            }
         }
 
         long orderId = transactionTemplate.execute(status -> placePendingOrder(userId, address));
