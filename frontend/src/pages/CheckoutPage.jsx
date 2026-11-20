@@ -7,14 +7,25 @@ import { API_TOKEN_KEY } from '../services/apiClient';
 import { getCurrentUser } from '../services/customerService';
 import { cancelCheckout, checkoutCart, getCart } from '../services/orderService';
 
+function splitAddress(value = '') {
+  const match = value.match(/^\s*(.+?)\s*,\s*(.+?)\s*,\s*([A-Za-z]{2})\s+(\d{5}(?:-\d{4})?)\s*$/);
+  return match
+    ? { street: match[1], city: match[2], state: match[3], zip: match[4] }
+    : { street: value, city: '', state: '', zip: '' };
+}
+
 function CheckoutPage() {
   const isLoggedIn = Boolean(localStorage.getItem(API_TOKEN_KEY));
   const [searchParams, setSearchParams] = useSearchParams();
   const [cart, setCart] = useState(null);
-  const [address, setAddress] = useState('');
+  const [street, setStreet] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [zip, setZip] = useState('');
   const [isLoading, setIsLoading] = useState(isLoggedIn);
   const [isPaying, setIsPaying] = useState(false);
   const [error, setError] = useState('');
+  const [addressError, setAddressError] = useState(false);
   const [notice, setNotice] = useState('');
 
   useEffect(() => {
@@ -36,7 +47,13 @@ function CheckoutPage() {
         const [cartResponse, account] = await Promise.all([getCart(), getCurrentUser().catch(() => null)]);
         if (!isCurrent) return;
         setCart(cartResponse);
-        setAddress((current) => current || account?.address || '');
+        if (account?.address) {
+          const savedAddress = splitAddress(account.address);
+          setStreet((current) => current || savedAddress.street);
+          setCity((current) => current || savedAddress.city);
+          setState((current) => current || savedAddress.state);
+          setZip((current) => current || savedAddress.zip);
+        }
       } catch (loadError) {
         if (isCurrent) setError(loadError.message || 'Unable to load your cart.');
       } finally {
@@ -54,12 +71,28 @@ function CheckoutPage() {
   async function handlePay(event) {
     event.preventDefault();
     setError('');
+    setAddressError(false);
+    const hasValidAddressFields = /^\d+\s+.+/.test(street.trim())
+      && /^[A-Za-z .'-]+$/.test(city.trim())
+      && /^[A-Za-z]{2}$/.test(state.trim())
+      && /^\d{5}(?:-\d{4})?$/.test(zip.trim());
+    if (!hasValidAddressFields) {
+      setAddressError(true);
+      setError('Please enter a correct address.');
+      return;
+    }
+    const address = `${street.trim()}, ${city.trim()}, ${state.trim().toUpperCase()} ${zip.trim()}`;
     setIsPaying(true);
     try {
-      const { url } = await checkoutCart(address.trim());
+      const { url } = await checkoutCart(address);
       window.location.assign(url);
     } catch (payError) {
-      setError(payError.message || 'Checkout failed. Please try again.');
+      const addressWasRejected = payError.status === 400
+        && /address|verified/i.test(payError.message || '');
+      setAddressError(addressWasRejected);
+      setError(addressWasRejected
+        ? 'Please enter a correct address.'
+        : (payError.message || 'Checkout failed. Please try again.'));
       setIsPaying(false);
       getCart().then(setCart).catch(() => {});
     }
@@ -108,21 +141,63 @@ function CheckoutPage() {
           </section>
 
           <label className="grid gap-2">
-            <span className="font-display text-xl font-black text-brand-green-700">deliver to</span>
-            <textarea
-              id="checkout-address"
-              value={address}
-              onChange={(event) => setAddress(event.target.value)}
-              required
-              rows={2}
-              placeholder="Street, city, state ZIP"
-              className="rounded-lg border-2 border-brand-green-100 bg-paper px-3 py-2 text-ink outline-none focus:border-brand-green-500"
-            />
+            <span className="flex items-center gap-2 font-display text-xl font-black text-brand-green-700">
+              deliver to
+              {addressError && <span className="font-sans text-2xl font-black leading-none text-red-600" aria-label="Address error">!</span>}
+            </span>
+            <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)_minmax(4rem,0.6fr)_minmax(6rem,0.8fr)]">
+              <label className="grid min-w-0 gap-1">
+                <span className="text-sm font-bold text-ink/70">street address</span>
+                <input
+                  id="checkout-street"
+                  value={street}
+                  onChange={(event) => { setStreet(event.target.value); setAddressError(false); }}
+                  required
+                  placeholder="Street address"
+                  className="min-w-0 w-full rounded-lg border-2 border-brand-green-100 bg-paper px-3 py-2 text-ink outline-none focus:border-brand-green-500"
+                />
+              </label>
+              <label className="grid min-w-0 gap-1">
+                <span className="text-sm font-bold text-ink/70">city</span>
+                <input
+                  id="checkout-city"
+                  value={city}
+                  onChange={(event) => { setCity(event.target.value); setAddressError(false); }}
+                  required
+                  placeholder="City"
+                  className="min-w-0 w-full rounded-lg border-2 border-brand-green-100 bg-paper px-3 py-2 text-ink outline-none focus:border-brand-green-500"
+                />
+              </label>
+              <label className="grid min-w-0 gap-1">
+                <span className="text-sm font-bold text-ink/70">state</span>
+                <input
+                  id="checkout-state"
+                  value={state}
+                  onChange={(event) => { setState(event.target.value); setAddressError(false); }}
+                  required
+                  maxLength={2}
+                  placeholder="State"
+                  className="min-w-0 w-full rounded-lg border-2 border-brand-green-100 bg-paper px-3 py-2 text-ink uppercase outline-none focus:border-brand-green-500"
+                />
+              </label>
+              <label className="grid min-w-0 gap-1">
+                <span className="text-sm font-bold text-ink/70">ZIP code</span>
+                <input
+                  id="checkout-zip"
+                  value={zip}
+                  onChange={(event) => { setZip(event.target.value); setAddressError(false); }}
+                  required
+                  inputMode="numeric"
+                  placeholder="ZIP code"
+                  className="min-w-0 w-full rounded-lg border-2 border-brand-green-100 bg-paper px-3 py-2 text-ink outline-none focus:border-brand-green-500"
+                />
+              </label>
+            </div>
           </label>
 
           <button
             type="submit"
-            disabled={isPaying || !address.trim()}
+            disabled={isPaying || !street.trim() || !city.trim() || !state.trim() || !zip.trim()}
             className="flex min-h-12 w-full items-center justify-center rounded-xl bg-brand-orange-400 px-5 font-display font-bold text-brand-green-700 hover:bg-brand-orange-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isPaying ? 'opening secure payment…' : `pay ${formatMoney(summary.total)}`}

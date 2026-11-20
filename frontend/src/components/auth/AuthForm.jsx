@@ -3,12 +3,28 @@ import Header from '../layout/Header';
 import { useState } from 'react';
 import { loginUser, signUpUser } from '../../services/customerService';
 
+function VisibilityIcon({ visible }) {
+  return visible ? (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 fill-none stroke-current stroke-2">
+      <path d="M3 12c2.5-3.5 5.5-5 9-5s6.5 1.5 9 5c-2.5 3.5-5.5 5-9 5s-6.5-1.5-9-5Z" />
+      <circle cx="12" cy="12" r="2.5" />
+      <path d="m4 4 16 16" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 fill-none stroke-current stroke-2">
+      <path d="M3 12c2.5-3.5 5.5-5 9-5s6.5 1.5 9 5c-2.5 3.5-5.5 5-9 5s-6.5-1.5-9-5Z" />
+      <circle cx="12" cy="12" r="2.5" />
+    </svg>
+  );
+}
+
 function AuthForm({pageTitle}) {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   
   const isSubmitButtonEnabled = (pageTitle === 'Login' || password === confirmPassword);
@@ -95,26 +111,40 @@ function AuthForm({pageTitle}) {
               <label htmlFor="password-field" className="sr-only">
                 Enter Your Password
               </label>
-              <input
-                id="password-field"
-                type="password"
-                minLength={pageTitle === 'Sign Up' ? 8 : undefined}
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)} 
-                placeholder="Enter your password..."
-                className="min-h-12 w-full rounded-xl border-2 border-brand-green-100 bg-white py-3 pl-12 pr-12 text-ink outline-none transition-colors placeholder:text-ink/40 focus:border-brand-green-500"
-              />
+              <div className="relative">
+                <input
+                  id="password-field"
+                  type={showPassword ? 'text' : 'password'}
+                  minLength={pageTitle === 'Sign Up' ? 8 : undefined}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password..."
+                  className="min-h-12 w-full rounded-xl border-2 border-brand-green-100 bg-white py-3 pl-12 pr-12 text-ink outline-none transition-colors placeholder:text-ink/40 focus:border-brand-green-500"
+                />
+                {pageTitle === 'Sign Up' && (
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xl text-ink/60 hover:text-brand-green-700"
+                  >
+                    <VisibilityIcon visible={showPassword} />
+                  </button>
+                )}
+              </div>
               {pageTitle === "Sign Up" && (
                 <div className="mt-4">
                   <label htmlFor="confirmPassword" className="sr-only">Confirm Your Password</label>
-                  <input 
-                    id="confirmPassword" 
-                    type="password" 
-                    value={confirmPassword} 
-                    onChange={(e) => setConfirmPassword(e.target.value)} 
-                    placeholder="Confirm your password..." 
-                    className="min-h-12 w-full rounded-xl border-2 border-brand-green-100 bg-white py-3 pl-12 pr-12 text-ink outline-none transition-colors placeholder:text-ink/40 focus:border-brand-green-500" 
-                  />
+                  <div className="relative">
+                    <input
+                      id="confirmPassword"
+                      type={showPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm your password..."
+                      className="min-h-12 w-full rounded-xl border-2 border-brand-green-100 bg-white py-3 pl-12 pr-12 text-ink outline-none transition-colors placeholder:text-ink/40 focus:border-brand-green-500"
+                    />
+                  </div>
                 </div>
               )}
               {pageTitle === 'Sign Up' && !isSubmitButtonEnabled && (
