@@ -9,23 +9,35 @@
 - MySQL
 - JDBC
 
-## Quick Start
+## Quick Start with Docker
 
-Requires Docker Desktop (running), Node, and Java 17+. From the project root:
-
-```bash
-npm run dev
-```
-
-This starts MySQL in Docker, resets the database from `backend/db/schema.sql` + `seed.sql`, then runs the Spring Boot backend (http://localhost:8080) and the React frontend (http://localhost:5173). Press `Ctrl + C` to stop the backend and frontend; MySQL keeps running (`docker compose down` to stop it).
+Requires Docker Desktop to be running. From the project root, build the images and start the complete application:
 
 ```bash
-npm run dev -- --keep-db   # same, but keep the current database data
-npm run db:reset           # only reset the database
-npm test                   # reset the database, then run backend tests and Playwright tests
-npm test -- --backend      # backend tests only
-npm test -- --e2e          # Playwright tests only
+docker compose up --build
 ```
+
+This builds the frontend and backend images, pulls the MySQL image if needed, creates the containers, and starts all three services:
+
+1. MySQL
+2. Spring Boot backend at http://localhost:8080
+3. React frontend at http://localhost:5173
+
+For later runs, when no Dockerfile or dependency changes are needed:
+
+```bash
+docker compose up
+```
+
+To stop and remove the containers and Docker network:
+
+```bash
+docker compose down
+```
+
+The named MySQL volume and its data are preserved by `docker compose down`. Normal Docker startup does not reset the database.
+
+For local development without containerizing the frontend and backend, see [Local Development](#local-development).
 
 If another MySQL is already using port 3306, the scripts use 3307 automatically. If Playwright's Chromium won't launch, set `PW_CHANNEL=chrome` to use your installed Chrome.
 
@@ -50,7 +62,9 @@ Install and start:
 - Node.js and npm
 - Java 17 or later
 
-### Start the Application
+### Local Development
+
+This workflow runs MySQL in Docker but runs the Spring Boot backend and React frontend directly on your computer. It requires Node.js, npm, and Java 17 or later.
 
 From the project root, run:
 
@@ -67,6 +81,16 @@ npm run dev
 4. Installs frontend dependencies if needed.
 5. Starts the Spring Boot backend.
 6. Starts the React frontend.
+
+Other local-development commands:
+
+```bash
+npm run dev -- --keep-db   # same, but keep the current database data
+npm run db:reset           # only reset the database
+npm test                   # reset the database, then run backend tests and Playwright tests
+npm test -- --backend      # backend tests only
+npm test -- --e2e          # Playwright tests only
+```
 
 Open the application at:
 
@@ -123,7 +147,7 @@ ROBOT_TIME_SCALE=20
 
 The `.env` file is ignored by Git and should never contain production credentials.
 
-### Stop the Application
+### Stop the Local Development Application
 
 Press:
 
