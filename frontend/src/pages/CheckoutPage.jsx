@@ -140,11 +140,11 @@ function CheckoutPage() {
             </ul>
           </section>
 
-          <label className="grid gap-2">
-            <span className="flex items-center gap-2 font-display text-xl font-black text-brand-green-700">
+          <fieldSet className="grid gap-2">
+            <legend className="flex items-center gap-2 font-display text-xl font-black text-brand-green-700">
               deliver to
               {addressError && <span className="font-sans text-2xl font-black leading-none text-red-600" aria-label="Address error">!</span>}
-            </span>
+            </legend>
             <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)_minmax(4rem,0.6fr)_minmax(6rem,0.8fr)]">
               <label className="grid min-w-0 gap-1">
                 <span className="text-sm font-bold text-ink/70">street address</span>
@@ -193,7 +193,7 @@ function CheckoutPage() {
                 />
               </label>
             </div>
-          </label>
+          </fieldSet>
 
           <button
             type="submit"
