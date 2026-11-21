@@ -23,13 +23,24 @@ test.describe('checkout page', () => {
     await mockApi(page, '**/api/cart', cart);
     await page.goto('/checkout');
 
-    await expect(page.locator('#checkout-address')).toHaveValue('777 The Alameda, San Jose, CA 95126');
+    await expect(page.getByRole('textbox', { name: 'street address' })).toHaveValue('777 The Alameda');
+    await expect(page.getByRole('textbox', { name: 'city', exact: true })).toHaveValue('San Jose');
+    await expect(page.getByRole('textbox', { name: 'state', exact: true })).toHaveValue('CA');
+    await expect(page.getByRole('textbox', { name: 'ZIP code', exact: true })).toHaveValue('95126');
     await expect(page.getByRole('button', { name: 'pay $3.00' })).toBeEnabled();
 
     // no address means no paying
-    await page.locator('#checkout-address').fill('');
-    await expect(page.getByRole('button', { name: 'pay $3.00' })).toBeDisabled();
+    await clearDisableFillEnable(page, page.getByRole('textbox', { name: 'street address' }), '777 The Alameda');
+    await clearDisableFillEnable(page, page.getByRole('textbox', { name: 'city' }), 'San Jose');
+    await clearDisableFillEnable(page, page.getByRole('textbox', { name: 'state' }), 'CA');
+    await clearDisableFillEnable(page, page.getByRole('textbox', { name: 'ZIP code' }), '95126');
   });
+  async function clearDisableFillEnable(page, locator, fillText) {
+    await locator.fill('');
+    await expect(page.getByRole('button', { name: 'pay $3.00' })).toBeDisabled();
+    await locator.fill(fillText);
+    await expect(page.getByRole('button', { name: 'pay $3.00' })).toBeEnabled();
+  }
 
   test('pay sends the address and goes to the returned url', async ({ page }) => {
     await loginAsCustomer(page);
