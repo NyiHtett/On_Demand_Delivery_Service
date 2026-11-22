@@ -42,7 +42,7 @@ function StopsTable({ stops, now }) {
               <td className="px-4 py-3 font-bold">#{stop.orderId}</td>
               <td className="px-4 py-3">{stop.customerName}</td>
               <td className="max-w-xs px-4 py-3 text-ink/75">{stop.deliveryAddress}</td>
-              <td className="px-4 py-3 tabular-nums">{Number(stop.totalWeight).toFixed(1)} lb</td>
+              <td className="px-4 py-3 tabular-nums">{Number(stop.totalWeight).toFixed(3)} lb</td>
               <td className="px-4 py-3"><StopStatus stop={stop} now={now} /></td>
             </tr>
           ))}

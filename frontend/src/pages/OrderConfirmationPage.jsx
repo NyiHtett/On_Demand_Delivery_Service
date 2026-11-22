@@ -80,7 +80,7 @@ function OrderConfirmationPage() {
 
                 <dl className="grid gap-1 text-sm text-ink/75">
                   <div className="flex justify-between"><dt>Subtotal</dt><dd className="tabular-nums">{formatMoney(order.subtotal)}</dd></div>
-                  <div className="flex justify-between"><dt>Total weight</dt><dd className="tabular-nums">{Number(order.totalWeight).toFixed(1)} lb</dd></div>
+                  <div className="flex justify-between"><dt>Total weight</dt><dd className="tabular-nums">{Number(order.totalWeight).toFixed(3)} lb</dd></div>
                   <div className="flex justify-between"><dt>Delivery</dt><dd className="tabular-nums">{Number(order.deliveryFee) > 0 ? formatMoney(order.deliveryFee) : 'free'}</dd></div>
                   <div className="mt-2 flex justify-between font-display text-lg font-black text-ink"><dt>Total paid</dt><dd className="tabular-nums text-brand-orange-500">{formatMoney(Number(order.subtotal) + Number(order.deliveryFee))}</dd></div>
                 </dl>

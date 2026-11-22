@@ -19,7 +19,7 @@ function CartSidebar({ summary, checkoutLink = true }) {
         </div>
         <div className="flex justify-between gap-4">
           <dt>Total weight</dt>
-          <dd>{summary.totalWeight.toFixed(1)} lb</dd>
+          <dd>{summary.totalWeight.toFixed(3)} lb</dd>
         </div>
         <div className="my-5 border-t border-brand-green-100" />
         <div className="flex justify-between gap-4">

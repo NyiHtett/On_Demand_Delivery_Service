@@ -51,7 +51,7 @@ export async function runCreateReadUpdateProductTest(page, testInfo, product) {
 
   const updates = {
     unitPrice: Number((initialProduct.unitPrice + 0.1).toFixed(2)),
-    unitWeight: Number((initialProduct.unitWeight + 0.1).toFixed(1)),
+    unitWeight: Number((initialProduct.unitWeight + 0.1).toFixed(3)),
     quantity: initialProduct.quantity + 1,
     description: `${initialProduct.description} Updated`,
   };
