@@ -28,7 +28,7 @@ function CartItem({ item, onDecrease, onIncrease, onRemove, onSetQuantity }) {
   }
 
   return (
-    <li className="grid grid-cols-[5rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-brand-green-100 py-5 last:border-b-0 sm:grid-cols-[6rem_minmax(9rem,1fr)_12rem_7rem_3rem]">
+    <li className="grid grid-cols-[5rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-brand-green-100 py-5 last:border-b-0 xl:grid-cols-[6rem_minmax(9rem,1fr)_12rem_7rem_3rem]">
       <div className="grid size-20 place-items-center rounded-xl border border-brand-green-100 bg-paper text-5xl sm:size-24 sm:text-6xl">
         {item.imageUrl && !imageFailed ? (
           <img
@@ -48,7 +48,7 @@ function CartItem({ item, onDecrease, onIncrease, onRemove, onSetQuantity }) {
         <p className="text-sm text-ink/65">{item.unit}</p>
       </div>
 
-      <div className="col-span-2 row-start-2 grid grid-cols-[2.5rem_4rem_2.5rem] items-center gap-2 sm:col-span-1 sm:col-start-3 sm:row-start-1">
+      <div className="col-span-2 row-start-2 grid grid-cols-[2.5rem_4rem_2.5rem] items-center gap-2 xl:col-span-1 xl:col-start-3 xl:row-start-1">
         <button
           type="button"
           onClick={onDecrease}
@@ -86,14 +86,14 @@ function CartItem({ item, onDecrease, onIncrease, onRemove, onSetQuantity }) {
         </button>
       </div>
 
-      <p className="row-start-2 text-right font-display text-lg font-black text-brand-orange-500 sm:col-start-4 sm:row-start-1">
+      <p className="row-start-2 whitespace-nowrap text-right font-display text-lg font-black text-brand-orange-500 xl:col-start-4 xl:row-start-1">
         {formatMoney(item.price * item.quantity)}
       </p>
 
       <button
         type="button"
         onClick={onRemove}
-        className="col-start-3 row-start-1 grid size-10 place-items-center justify-self-end rounded-lg border border-red-200 bg-red-50 text-xl font-bold text-red-600 hover:bg-red-100 sm:col-start-5"
+        className="col-start-3 row-start-1 grid size-10 place-items-center justify-self-end rounded-lg border border-red-200 bg-red-50 text-xl font-bold text-red-600 hover:bg-red-100 xl:col-start-5"
         aria-label={`Remove ${item.name} from cart`}
       >
         ×
