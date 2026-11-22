@@ -19,6 +19,8 @@ public record GeoCodioResponse(List<GeoCodioResult> results) {
     public record AddressComponents(
         String number,
         @JsonProperty("formatted_street") String formattedStreet,
+        @JsonProperty("unit_type") String unitType,
+        @JsonProperty("unit_number") String unitNumber,
         String city,
         @JsonProperty("state_province") String state,
         @JsonProperty("postal_code") String zip

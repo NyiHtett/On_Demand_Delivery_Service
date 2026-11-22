@@ -14,10 +14,15 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Set;
 
 /** Calls Geocodio's Address Validation API before an order is created. */
 @Service
 public class AddressValidationService {
+    // Match types that mean a real building, not just a street, corner, city or state.
+    private static final Set<String> EXACT_MATCHES =
+        Set.of("rooftop", "point", "range_interpolation", "nearest_rooftop_match");
+
     private final String apiKey;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient httpClient = HttpClient.newHttpClient();
@@ -28,7 +33,10 @@ public class AddressValidationService {
 
     public AddressValidationResponse isValid(AddressRequest addressRequest) {
         // Keep local development usable when no Geocodio key is configured.
-        if (apiKey.isBlank()) return new AddressValidationResponse(true, null, null, null, null, null);
+        if (apiKey.isBlank()) {
+            return new AddressValidationResponse(true, null, addressRequest.street(), addressRequest.city(),
+                addressRequest.state(), addressRequest.zip());
+        }
 
         try {
             String url = UriComponentsBuilder.fromUriString("https://api.geocod.io/v2.1/geocode")
@@ -54,12 +62,19 @@ public class AddressValidationService {
 
             GeoCodioResult bestMatch = geoResponse.results().get(0);
 
-            if (bestMatch.accuracy() < 0.8) {
+            AddressComponents components = bestMatch.addressComponents();
+
+            if (bestMatch.accuracy() < 0.8
+                    || !EXACT_MATCHES.contains(bestMatch.accuracyType())
+                    || components.number() == null) {
                 return new AddressValidationResponse(false, "Could not verify exact street address, too far from existing addresses.", null, null, null, null);
             }
 
-            AddressComponents components = bestMatch.addressComponents();
             String cleanStreet = components.number() + " " + components.formattedStreet();
+            if (components.unitNumber() != null) {
+                String unitType = components.unitType() == null ? "Unit" : components.unitType();
+                cleanStreet += " " + unitType + (unitType.equals("#") ? "" : " ") + components.unitNumber();
+            }
 
             return new AddressValidationResponse(
                 true,

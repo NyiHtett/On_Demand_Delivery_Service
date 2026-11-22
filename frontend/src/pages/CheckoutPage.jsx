@@ -8,7 +8,10 @@ import { getCurrentUser } from '../services/customerService';
 import { cancelCheckout, checkoutCart, getCart } from '../services/orderService';
 
 function splitAddress(value = '') {
-  const match = value.match(/^\s*(.+?)\s*,\s*(.+?)\s*,\s*([A-Za-z]{2})\s+(\d{5}(?:-\d{4})?)\s*$/);
+  // the city is the part right before the state, so "123 Main St, Apt 4, San Jose, CA 95112" keeps the apartment in the street
+  const match = value
+    .replace(/\s*,?\s*\n\s*/g, ', ')
+    .match(/^\s*(.+?)\s*,\s*([^,]+?)\s*,\s*([A-Za-z]{2})[\s,]+(\d{5}(?:-\d{4})?)\s*$/);
   return match
     ? { street: match[1], city: match[2], state: match[3], zip: match[4] }
     : { street: value, city: '', state: '', zip: '' };
