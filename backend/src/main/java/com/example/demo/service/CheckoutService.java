@@ -5,6 +5,8 @@ import com.example.demo.dao.OrderDao;
 import com.example.demo.dao.ProductDao;
 import com.example.demo.dao.UserDao;
 import com.example.demo.dto.AccountResponse;
+import com.example.demo.dto.AddressRequest;
+import com.example.demo.dto.AddressValidationResponse;
 import com.example.demo.dto.CartItemResponse;
 import com.example.demo.dto.CheckoutSessionResponse;
 import com.example.demo.dto.ConfirmCheckoutRequest;
@@ -97,16 +99,15 @@ public class CheckoutService {
         log.info("Stripe checkout {}", stripe.isEnabled() ? "enabled" : "disabled (no STRIPE_SECRET_KEY): orders are marked paid immediately");
     }
 
-    public CheckoutSessionResponse createSession(long userId, String requestedAddress) {
-        String address = requestedAddress == null || requestedAddress.isBlank()
-            ? userDao.getCurrentAccountByUserId(userId).map(AccountResponse::address).orElse(null)
-            : requestedAddress.trim();
-        if (address == null || address.isBlank()) {
+    public CheckoutSessionResponse createSession(long userId, AddressRequest address) {
+        if (address == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Enter a delivery address.");
         }
+        AddressValidationResponse response = null;
         if (addressValidationService != null) {
             try {
-                if (!addressValidationService.isValid(address)) {
+                response = addressValidationService.isValid(address);
+                if (!response.valid()) {
                     throw new ApiException(HttpStatus.BAD_REQUEST,
                         "That delivery address could not be verified. Please enter a complete street address.");
                 }
@@ -116,7 +117,10 @@ public class CheckoutService {
             }
         }
 
-        long orderId = transactionTemplate.execute(status -> placePendingOrder(userId, address));
+        if (response == null) 
+            throw new ApiException(HttpStatus.NOT_FOUND, "The response is null even though the address is valid.");
+        final AddressValidationResponse finalResponse = response;
+        long orderId = transactionTemplate.execute(status -> placePendingOrder(userId, finalResponse.toString()));
 
         if (!stripe.isEnabled()) {
             markPaid(orderId, null);

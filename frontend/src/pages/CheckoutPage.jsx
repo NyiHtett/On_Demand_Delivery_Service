@@ -72,16 +72,41 @@ function CheckoutPage() {
     event.preventDefault();
     setError('');
     setAddressError(false);
-    const hasValidAddressFields = /^\d+\s+.+/.test(street.trim())
-      && /^[A-Za-z .'-]+$/.test(city.trim())
-      && /^[A-Za-z]{2}$/.test(state.trim())
-      && /^\d{5}(?:-\d{4})?$/.test(zip.trim());
-    if (!hasValidAddressFields) {
+
+
+    const hasValidStreet = street.trim().length >= 3;
+    const hasValidCity = /^[A-Za-z .'-]+$/.test(city.trim())
+    const hasValidState = /^[A-Za-z]{2}$/.test(state.trim())
+    const hasValidZip =  /^\d{5}(?:-\d{4})?$/.test(zip.trim());
+
+
+    if (!hasValidStreet) {
       setAddressError(true);
-      setError('Please enter a correct address.');
+      setError('Please enter a correct street.');
       return;
     }
-    const address = `${street.trim()}, ${city.trim()}, ${state.trim().toUpperCase()} ${zip.trim()}`;
+    if (!hasValidCity) {
+      setAddressError(true);
+      setError('Please enter a correct city.');
+      return;
+    }
+    if (!hasValidState) {
+      setAddressError(true);
+      setError('Please enter a correct state.');
+      return;
+    }
+    if (!hasValidZip) {
+      setAddressError(true);
+      setError('Please enter a correct ZIP code.');
+      return;
+    }
+    const address = 
+    {
+      "street" : street.trim(),
+      "city" : city.trim(),
+      "state" : state.trim(),
+      "zip" : zip.trim()
+    };
     setIsPaying(true);
     try {
       const { url } = await checkoutCart(address);

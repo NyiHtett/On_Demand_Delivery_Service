@@ -1,61 +1,76 @@
 package com.example.demo.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.example.demo.dto.AddressRequest;
+import com.example.demo.dto.AddressValidationResponse;
+import com.example.demo.dto.GeoCodioResponse;
+import com.example.demo.dto.GeoCodioResponse.AddressComponents;
+import com.example.demo.dto.GeoCodioResponse.GeoCodioResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 
-/** Calls Google's Address Validation API before an order is created. */
+/** Calls Geocodio's Address Validation API before an order is created. */
 @Service
 public class AddressValidationService {
-    private static final String VALIDATION_URL = "https://addressvalidation.googleapis.com/v1:validateAddress";
-
     private final String apiKey;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
-    public AddressValidationService(@Value("${google.maps.api-key:}") String apiKey) {
+    public AddressValidationService(@Value("${geocodio.api.key}") String apiKey) {
         this.apiKey = apiKey == null ? "" : apiKey.trim();
     }
 
-    public boolean isValid(String address) {
-        // Keep local development usable when no Google key is configured.
-        if (apiKey.isBlank()) return true;
+    public AddressValidationResponse isValid(AddressRequest addressRequest) {
+        // Keep local development usable when no Geocodio key is configured.
+        if (apiKey.isBlank()) return new AddressValidationResponse(true, null, null, null, null, null);
 
         try {
-            ObjectNode body = objectMapper.createObjectNode();
-            ObjectNode postalAddress = body.putObject("address");
-            ArrayNode addressLines = postalAddress.putArray("addressLines");
-            addressLines.add(address);
-            postalAddress.put("regionCode", "US");
-            body.put("enableUspsCass", true);
+            String url = UriComponentsBuilder.fromUriString("https://api.geocod.io/v2.1/geocode")
+                .queryParam("street", addressRequest.street())
+                .queryParam("city", addressRequest.city())
+                .queryParam("state", addressRequest.state())
+                .queryParam("postal_code", addressRequest.zip())
+                .queryParam("api_key", apiKey)
+                .toUriString();
 
-            String encodedKey = URLEncoder.encode(apiKey, StandardCharsets.UTF_8);
             HttpRequest request = HttpRequest.newBuilder(
-                    URI.create(VALIDATION_URL + "?key=" + encodedKey))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(body)))
+                    URI.create(url))
+                .header("Accept", "application/json")
+                .GET()
                 .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() / 100 != 2) return false;
+            GeoCodioResponse geoResponse = objectMapper.readValue(response.body(), GeoCodioResponse.class);
+                        
+            if (geoResponse.results() == null || geoResponse.results().isEmpty()) {
+                return new AddressValidationResponse(false, "Could not verify exact street address, no address available.", null, null, null, null);
+            }
 
-            JsonNode result = objectMapper.readTree(response.body()).path("result");
-            JsonNode verdict = result.path("verdict");
-            return verdict.path("addressComplete").asBoolean(false)
-                && !verdict.path("hasUnconfirmedComponents").asBoolean(false)
-                && !verdict.path("hasInferredComponents").asBoolean(false);
+            GeoCodioResult bestMatch = geoResponse.results().get(0);
+
+            if (bestMatch.accuracy() < 0.8) {
+                return new AddressValidationResponse(false, "Could not verify exact street address, too far from existing addresses.", null, null, null, null);
+            }
+
+            AddressComponents components = bestMatch.addressComponents();
+            String cleanStreet = components.number() + " " + components.formattedStreet();
+
+            return new AddressValidationResponse(
+                true,
+                "Address verified.",
+                cleanStreet,
+                components.city(),
+                components.state(),
+                components.zip()
+            );
         } catch (Exception exception) {
-            throw new IllegalStateException("Google address validation failed", exception);
+            throw new IllegalStateException("Geocodio address validation failed", exception);
         }
     }
 }

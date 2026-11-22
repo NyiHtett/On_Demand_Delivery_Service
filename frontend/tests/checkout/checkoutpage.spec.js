@@ -56,7 +56,14 @@ test.describe('checkout page', () => {
     await page.getByRole('button', { name: 'pay $3.00' }).click();
 
     await expect(page).toHaveURL(/order-confirmation\?order_id=9/);
-    expect(sentBody).toEqual({ deliveryAddress: '777 The Alameda, San Jose, CA 95126' });
+    expect(sentBody).toEqual({ 
+      "deliveryAddress" : {
+        "city" : "San Jose",
+        "state": "CA",
+        "street": "777 The Alameda",
+        "zip": "95126",
+      }
+    });
   });
 
   test('out of stock error is shown and the page stays', async ({ page }) => {
