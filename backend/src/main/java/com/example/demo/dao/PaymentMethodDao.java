@@ -22,7 +22,12 @@ public class PaymentMethodDao {
             SELECT id, card_brand, last_four, billing_name,
                    expiration_month, expiration_year, is_default
             FROM stripe_payment_methods
-            WHERE user_id = ?
+            WHERE id IN (
+                SELECT MIN(id)
+                FROM stripe_payment_methods
+                WHERE user_id = ?
+                GROUP BY card_fingerprint
+            )
             ORDER BY is_default DESC, created_at DESC, id DESC
             """, (resultSet, rowNumber) -> new PaymentMethodResponse(
                 resultSet.getLong("id"),
@@ -98,15 +103,15 @@ public class PaymentMethodDao {
         return ids.isEmpty() ? null : ids.get(0);
     }
 
-    public String getPaymentMethodIdByFingerprint(String customerId, String fingerprint) {
+    public String getPaymentMethodIdByFingerprint(long userId, String fingerprint) {
         List<String> ids = jdbcTemplate.query("""
             SELECT stripe_payment_method_id
             FROM stripe_payment_methods
-            WHERE stripe_customer_id = ? AND card_fingerprint = ?
+            WHERE user_id = ? AND card_fingerprint = ?
             LIMIT 1
             """,
             (rs, rowNum) -> rs.getString("stripe_payment_method_id"),
-            customerId, fingerprint
+            userId, fingerprint
         );
         return ids.isEmpty() ? null : ids.get(0);
     }

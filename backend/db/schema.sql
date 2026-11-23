@@ -41,6 +41,7 @@ CREATE TABLE stripe_payment_methods (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT uniqueCardsPerCustomer UNIQUE (stripe_customer_id, card_fingerprint),
+    CONSTRAINT uniqueCardFingerprintPerUser UNIQUE (user_id, card_fingerprint),
 
     FOREIGN KEY (user_id)
         REFERENCES users(user_id)

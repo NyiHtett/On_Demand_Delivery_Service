@@ -106,7 +106,7 @@ public class PaymentMethodService {
             if (cardFingerprint == null || cardFingerprint.isBlank()) {
                 throw new ApiException(HttpStatus.BAD_REQUEST, "This card can't be saved. It does not have a fingerprint.");
             }
-            String previouslyExistingCardID = paymentMethodDao.getPaymentMethodIdByFingerprint(customerId, cardFingerprint);
+            String previouslyExistingCardID = paymentMethodDao.getPaymentMethodIdByFingerprint(userId, cardFingerprint);
             if (previouslyExistingCardID != null && !previouslyExistingCardID.equals(paymentMethod.getId())) {
                 throw new ApiException(HttpStatus.CONFLICT, "This card is saved already.");
             }
@@ -159,7 +159,7 @@ public class PaymentMethodService {
         if (cardFingerprint == null || cardFingerprint.isBlank()) {
             return; //skip saving because card does not have a fingerprint
         }
-        String previouslyExistingCardID = paymentMethodDao.getPaymentMethodIdByFingerprint(customerId, cardFingerprint);
+        String previouslyExistingCardID = paymentMethodDao.getPaymentMethodIdByFingerprint(userId, cardFingerprint);
         if (previouslyExistingCardID != null && !previouslyExistingCardID.equals(paymentMethod.getId())) {
             return; //skip saving because card is previously saved
         }
@@ -189,7 +189,7 @@ public class PaymentMethodService {
             return true;
         } catch (DuplicateKeyException exception) {
             String existingPaymentMethodId =
-                    paymentMethodDao.getPaymentMethodIdByFingerprint(customerId, cardFingerprint);
+                    paymentMethodDao.getPaymentMethodIdByFingerprint(userId, cardFingerprint);
             if (stripePaymentMethodId.equals(existingPaymentMethodId)
                     || paymentMethodDao.getIdByStripePaymentMethodId(userId, stripePaymentMethodId) != null) {
                 paymentMethodDao.save(userId, customerId, stripePaymentMethodId, cardBrand, lastFour,
