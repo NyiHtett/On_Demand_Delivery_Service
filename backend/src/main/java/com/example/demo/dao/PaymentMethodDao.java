@@ -94,6 +94,26 @@ public class PaymentMethodDao {
         return ids.isEmpty() ? null : ids.get(0);
     }
 
+    public String getCardFingerprint(long userId, long id) {
+        List<String> fingerprints = jdbcTemplate.query(
+            "SELECT card_fingerprint FROM stripe_payment_methods WHERE id = ? AND user_id = ?",
+            (resultSet, rowNumber) -> resultSet.getString("card_fingerprint"),
+            id, userId
+        );
+        return fingerprints.isEmpty() ? null : fingerprints.get(0);
+    }
+
+    public List<String> getStripePaymentMethodIdsByFingerprint(long userId, String fingerprint) {
+        return jdbcTemplate.query("""
+            SELECT stripe_payment_method_id
+            FROM stripe_payment_methods
+            WHERE user_id = ? AND card_fingerprint = ?
+            """,
+            (resultSet, rowNumber) -> resultSet.getString("stripe_payment_method_id"),
+            userId, fingerprint
+        );
+    }
+
     public Long getIdByStripePaymentMethodId(long userId, String stripePaymentMethodId) {
         List<Long> ids = jdbcTemplate.query(
             "SELECT id FROM stripe_payment_methods WHERE user_id = ? AND stripe_payment_method_id = ?",
@@ -120,6 +140,13 @@ public class PaymentMethodDao {
         return jdbcTemplate.update(
             "DELETE FROM stripe_payment_methods WHERE id = ? AND user_id = ?",
             id, userId
+        );
+    }
+
+    public int deleteByFingerprintAndUserId(long userId, String fingerprint) {
+        return jdbcTemplate.update(
+            "DELETE FROM stripe_payment_methods WHERE user_id = ? AND card_fingerprint = ?",
+            userId, fingerprint
         );
     }
 }

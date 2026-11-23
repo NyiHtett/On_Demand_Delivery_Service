@@ -202,14 +202,20 @@ public class PaymentMethodService {
 
     public void deletePaymentMethod(long userId, Long paymentMethodId) {
         requireStripe();
-        String stripePaymentMethodId = paymentMethodDao.getStripePaymentMethodId(userId, paymentMethodId);
-        if (stripePaymentMethodId == null) {
+        String fingerprint = paymentMethodDao.getCardFingerprint(userId, paymentMethodId);
+        if (fingerprint == null) {
             throw new ApiException(HttpStatus.NOT_FOUND, "Payment method not found.");
         }
 
         try {
-            stripe.detachPaymentMethod(stripePaymentMethodId);
-            paymentMethodDao.deleteByIdAndUserId(paymentMethodId, userId);
+            for (String stripePaymentMethodId :
+                    paymentMethodDao.getStripePaymentMethodIdsByFingerprint(userId, fingerprint)) {
+                PaymentMethod paymentMethod = stripe.retrievePaymentMethod(stripePaymentMethodId);
+                if (paymentMethod.getCustomer() != null) {
+                    stripe.detachPaymentMethod(stripePaymentMethodId);
+                }
+            }
+            paymentMethodDao.deleteByFingerprintAndUserId(userId, fingerprint);
         } catch (StripeException exception) {
             throw new ApiException(HttpStatus.BAD_GATEWAY,
                     "Couldn't remove payment method from Stripe: " + exception.getMessage());
