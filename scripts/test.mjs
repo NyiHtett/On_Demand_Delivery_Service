@@ -33,7 +33,7 @@ function suite(name, command, commandArgs, cwd) {
 if (runBackend) suite('backend (mvnw test)', mavenCommand(), ['test'], BACKEND);
 if (runE2e) {
   ensureFrontendDeps();
-  spawnSync('npx', ['playwright', 'install', 'chromium'], { cwd: FRONTEND, stdio: 'inherit', shell: IS_WINDOWS });
+  spawnSync('npx', ['playwright', 'install', 'chrome', 'firefox'], { cwd: FRONTEND, stdio: 'inherit', shell: IS_WINDOWS });
   // Playwright tests sign up users, so start them from a clean seed too.
   if (runBackend) reseedDatabase();
   suite('frontend (playwright)', 'npx', ['playwright', 'test'], FRONTEND);

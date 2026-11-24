@@ -4,7 +4,7 @@ import { defineConfig } from '@playwright/test';
 const now = new Date();
 const timestamp = now.toISOString().replace(/T/, '_').replace(/[:.]/g, '').slice(0, 15);
 const reportDir = `./test_reports/${timestamp}`;
-const CI = false;
+const CI = true;
 export const BASE_URL = "http://localhost:5173/";
 
 export default defineConfig({
@@ -43,11 +43,8 @@ export default defineConfig({
 
   use: {
     baseURL: BASE_URL,
-    // Set PW_CHANNEL=chrome (or msedge) to use the installed browser if Playwright's bundled Chromium can't launch.
-    channel: process.env.PW_CHANNEL || undefined,
     viewport: null,
     launchOptions: {
-      args: ['--start-maximized'],
       headless: !!CI,
     },
 
@@ -61,5 +58,18 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
 
-  projects: [{ name: 'chromium' }],
+  projects: [
+    {
+      name: 'chrome',
+      use: {
+        browserName: 'chromium',
+        channel: 'chrome',
+        launchOptions: { args: ['--start-maximized'] },
+      },
+    },
+    {
+      name: 'firefox',
+      use: { browserName: 'firefox' },
+    },
+  ],
 });

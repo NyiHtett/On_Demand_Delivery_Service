@@ -39,7 +39,7 @@ The named MySQL volume and its data are preserved by `docker compose down`. Norm
 
 For local development without containerizing the frontend and backend, see [Local Development](#local-development).
 
-If another MySQL is already using port 3306, the scripts use 3307 automatically. If Playwright's Chromium won't launch, set `PW_CHANNEL=chrome` to use your installed Chrome.
+If another MySQL is already using port 3306, the scripts use 3307 automatically. Playwright end-to-end tests run in Chrome and Firefox.
 
 Settings go in a `.env` file in the project root (it is gitignored, never commit keys):
 
@@ -202,7 +202,7 @@ Make sure Docker Desktop is running. From the project root:
 ```powershell
 cd frontend
 npm install
-npx playwright install chromium
+npx playwright install chrome firefox
 npm run test:e2e
 ```
 
