@@ -48,6 +48,7 @@ STRIPE_SECRET_KEY=sk_test_...      # without it, checkout skips Stripe and marks
 GOOGLE_MAPS_API_KEY=...            # robot routes + map; without it robots use 5 min per stop and no map
 ROBOT_QUEUE_UNIT_SECONDS=10        # demo speed: robot timer counts 10 s "minutes" (default 60)
 ROBOT_TIME_SCALE=20                # demo speed: robots drive 20x faster (default 1)
+GEOCODIO_API_KEY=                  # without it, addresses are not validated, and are marked valid right away
 ```
 
 Stripe test card: `4242 4242 4242 4242`, any future expiry, any CVC. Seed logins (password `P@ssw0rd!`): customers `maria.lopez@example.com` (has a sample cart and order history), `sam.patel@example.com`, `leah.ni@example.com`; employees `abe.jun@example.com`, `joel.east@example.com`, `po.li@example.com`.
