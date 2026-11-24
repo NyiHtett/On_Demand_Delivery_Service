@@ -39,6 +39,15 @@ services:
       - ./backend/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       - ./backend/db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
 
+    # Healthy only once MySQL accepts TCP connections, which is after the first-run schema/seed.
+    # The init-time temporary server has networking disabled, so this can't pass early.
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h127.0.0.1", "-uroot", "-proot", "--silent"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+      start_period: 5s
+
   backend: 
     build: 
       context: ./backend
@@ -54,8 +63,10 @@ services:
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
       ROBOT_QUEUE_UNIT_SECONDS: ${ROBOT_QUEUE_UNIT_SECONDS:-60}
       ROBOT_TIME_SCALE: ${ROBOT_TIME_SCALE:-1}
-    depends_on: 
-      - mysql
+    # Wait for MySQL to be ready, otherwise the backend logs connection errors while it starts
+    depends_on:
+      mysql:
+        condition: service_healthy
 
   frontend: 
     build:
